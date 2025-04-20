@@ -1054,9 +1054,13 @@
             tr.appendChild(td);
           } else {
             // 非書籍的一般處理
-            Object.values(r).forEach(v => {
+            Object.keys(r).forEach((key, colIndex) => {
               const td = document.createElement('td');
-              td.textContent = v;
+              // 論文查詢的論文名稱欄位加上 book-title class
+              if(type === 'thesis' && key === '論文名稱') {
+                td.className = 'book-title';
+              }
+              td.textContent = r[key];
               tr.appendChild(td);
             });
           }
@@ -1137,9 +1141,13 @@
           tr.appendChild(td);
         } else {
           // 非書籍的一般處理
-          Object.values(r).forEach(v => {
+          Object.keys(r).forEach((key, colIndex) => {
             const td = document.createElement('td');
-            td.textContent = v;
+            // 論文查詢的論文名稱欄位加上 book-title class
+            if(type === 'thesis' && key === '論文名稱') {
+              td.className = 'book-title';
+            }
+            td.textContent = r[key];
             tr.appendChild(td);
           });
         }
