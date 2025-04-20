@@ -77,19 +77,18 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
       color: white;
       position: relative;
-      overflow: hidden; /* 允許內容溢出 */
+      overflow: hidden;
     }
     
     .banner::before {
       content: "";
       position: absolute;
-      top: -20%;
-      left: -40%;
-      width: 150%;
-      height: 120%;
-      background: radial-gradient(circle at 15% 50%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 80%);
-      animation: rotate 14s linear infinite;
-      z-index: 5; /* 確保旋轉效果在內容上方 */
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%);
+      animation: rotate 20s linear infinite;
     }
     
     @keyframes rotate {
@@ -141,7 +140,6 @@
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-      background: #b8f2e6; /* 馬卡龍綠色 */
     }
     
     thead tr {
@@ -270,29 +268,11 @@
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
       padding: 1.5rem;
       margin-bottom: 2rem;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      position: relative;
-      overflow: hidden;
+      transition: all 0.3s ease;
     }
     
     .search-container:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-    }
-    
-    .search-container::before {
-      content: '';
-      position: absolute;
-      top: -50%; right: -50%;
-      width: 150%; height: 150%;
-      background: radial-gradient(circle at 30% 30%, rgba(63, 131, 248, 0.08) 0%, rgba(63, 131, 248, 0) 60%);
-      animation: searchFloat 12s ease-in-out infinite alternate;
-      z-index: 0;
-    }
-    
-    @keyframes searchFloat {
-      0% { transform: translateY(0) translateX(0); }
-      100% { transform: translateY(-30px) translateX(30px); }
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
     }
     
     .search-title {
@@ -301,8 +281,6 @@
       margin-bottom: 1rem;
       display: flex;
       align-items: center;
-      position: relative;
-      z-index: 1;
     }
     
     .search-title i {
@@ -323,45 +301,12 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       padding: 1.2rem;
       text-align: center;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      position: relative;
-      overflow: hidden;
+      transition: all 0.3s ease;
     }
     
     .stat-card:hover {
-      transform: translateY(-8px) scale(1.05);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
-    }
-    
-    /* 多個小氣泡動畫 */
-    .bubbles {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 0;
-    }
-    .bubble {
-      position: absolute;
-      border-radius: 50%;
-      opacity: 0.35;
-      background: radial-gradient(circle at 60% 40%, #bcdcff 0%, #e3f0ff 100%);
-      animation: bubble-move 12s linear infinite;
-    }
-    @keyframes bubble-move {
-      0% {
-        transform: translateY(100%) scale(0.7);
-        opacity: 0.18;
-      }
-      20% {
-        opacity: 0.35;
-      }
-      80% {
-        opacity: 0.35;
-      }
-      100% {
-        transform: translateY(-120%) scale(1.1);
-        opacity: 0.18;
-      }
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
     
     .stat-icon {
@@ -370,34 +315,23 @@
       background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      position: relative;
-      z-index: 1;
     }
     
     .stat-number {
       font-size: 1.8rem;
       font-weight: 700;
       color: var(--dark-color);
-      position: relative;
-      z-index: 1;
     }
     
     .stat-label {
       font-size: 0.9rem;
       color: #6b7280;
-      position: relative;
-      z-index: 1;
     }
     
     /* 表格標題行特效 */
     .table thead th {
       position: relative;
       overflow: hidden;
-      position: sticky;
-      top: 0;
-      background: #fff;
-      z-index: 2;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     
     .table thead th::after {
@@ -415,180 +349,24 @@
     .table thead th:hover::after {
       transform: translateX(0);
     }
-
-    /* 表格懸停效果 */
-    .table-responsive {
-      border-radius: 12px;
-      overflow: hidden;
-      transition: transform 0.4s ease, box-shadow 0.4s ease;
-    }
-
-    .table-responsive:hover {
-      transform: translateY(-5px) scale(1.01);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    /* 表格行效果調整 */
-    tbody tr {
-      transition: all 0.3s ease;
-    }
-
-    tbody tr:hover {
-      background-color: rgba(224, 242, 254, 0.8);
-      transform: translateX(5px) scale(1.01);
-      box-shadow: -5px 0 15px rgba(0, 0, 0, 0.05);
-    }
-
-    /* 表格奇數行背景調整 */
-    tbody tr:nth-of-type(odd) {
-      background-color: rgba(249, 250, 251, 0.8);
-    }
-
-    /* 表格布局優化 */
-    .table {
-      table-layout: fixed;
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    /* 進一步優化表格欄位顯示 */
-    .table th,
-    .table td {
-      text-align: center;
-      vertical-align: middle;
-      padding: 0.75rem 0.5rem;
-    }
-
-    /* 表格最終優化 */
-    .table thead th,
-    .table tbody td {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* 借出項目強調 */
-    .borrowed-item {
-      position: relative;
-      transition: all 0.3s ease;
-    }
-
-    .borrowed-item:hover {
-      z-index: 10;
-    }
-
-    .borrowed-recently {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .borrowed-recently::after {
-      content: '近期借出';
-      position: absolute;
-      top: 8px;
-      right: -30px;
-      background: var(--accent-color);
-      color: white;
-      font-size: 0.7rem;
-      padding: 2px 30px;
-      transform: rotate(45deg);
-      z-index: 5;
-    }
-
-    /* 針對書名等長文本欄位特殊處理 */
-    .table td.book-title {
-      white-space: normal;
-      max-width: 200px;
-      word-break: break-word;
-    }
-
-    /* 優化借閱按鈕 */
-    .borrow-button {
-      width: 80px;
-    }
-
-    /* 表格中的 colgroup 強制固定寬度 */
-    #book .table colgroup col {
-      width: var(--col-width) !important;
-    }
-
-    /* 頁面載入進度條 */
-    #page-loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      z-index: 9999;
-      display: none;
-    }
-
-    #page-loader .loader-bar {
-      height: 100%;
-      width: 0;
-      background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
-      background-size: 200% 100%;
-      animation: load-progress 3s ease forwards;
-    }
-
-    @keyframes load-progress {
-      0% { width: 0; }
-      10% { width: 15%; }
-      30% { width: 40%; }
-      50% { width: 65%; }
-      80% { width: 85%; }
-      100% { width: 100%; }
-    }
-
-    /* 圖片淡入縮放效果 */
-    .image-zoom {
-      opacity: 0;
-      transform: scale(0.9);
-      animation: fadeInZoom 1.2s ease forwards;
-    }
-
-    @keyframes fadeInZoom {
-      0% { opacity: 0; transform: scale(0.9); }
-      100% { opacity: 1; transform: scale(1); }
-    }
-
-    /* 延遲加載序列 */
-    .zoom-delay-1 { animation-delay: 0.2s; }
-    .zoom-delay-2 { animation-delay: 0.4s; }
-    .zoom-delay-3 { animation-delay: 0.6s; }
-
-    /* 平滑滾動顯示效果 */
-    .scroll-animate {
-      opacity: 0;
-      transform: translateY(30px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-
-    .scroll-animate.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
   </style>
 </head>
 <body>
-  <div id="page-loader">
-    <div class="loader-bar"></div>
-  </div>
 
   <!-- Banner -->
   <header class="banner py-4 d-flex align-items-center px-4 mb-4">
     <div class="banner-content d-flex align-items-center w-100">
-      <img src="logo.png" alt="logo" class="me-4 image-zoom" style="height:85px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));" />
+      <img src="logo.png" alt="logo" class="me-4" style="height:85px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));" />
       <div>
-        <h1 class="h4 mb-1 fw-bold image-zoom zoom-delay-1">海巡署教育訓練測考中心圖書查詢系統</h1>
-        <p class="mb-0 opacity-75 image-zoom zoom-delay-2">Coast Guard Administration Education and Training Testing Center Library Query System</p>
+        <h1 class="h4 mb-1 fw-bold">海巡署教育訓練測考中心圖書查詢系統</h1>
+        <p class="mb-0 opacity-75">Coast Guard Administration Education and Training Testing Center Library Query System</p>
       </div>
     </div>
   </header>
 
   <div class="container-fluid px-4">
     <!-- 數據統計展示 -->
-    <div class="stats-container fade-in scroll-animate">
+    <div class="stats-container fade-in">
       <div class="stat-card" onclick="switchTab('thesis', document.querySelector('.nav-link[onclick*=\'thesis\']'))" style="cursor: pointer;">
         <div class="stat-icon"><i class="fas fa-scroll"></i></div>
         <div class="stat-number" id="thesis-count">0</div>
@@ -622,7 +400,7 @@
     </nav>
 
     <!-- 論文 查詢 -->
-    <section id="thesis" class="tab-content fade-in scroll-animate">
+    <section id="thesis" class="tab-content fade-in">
       <div class="search-container mb-4">
         <h5 class="search-title"><i class="fas fa-search"></i> 論文資料檢索</h5>
         <div class="row align-items-end g-3">
@@ -663,7 +441,7 @@
     </section>
 
     <!-- 期刊 查詢 -->
-    <section id="journal" class="tab-content d-none fade-in scroll-animate">
+    <section id="journal" class="tab-content d-none fade-in">
       <div class="search-container mb-4">
         <h5 class="search-title"><i class="fas fa-search"></i> 期刊資料檢索</h5>
         <div class="row align-items-end g-3">
@@ -704,7 +482,7 @@
     </section>
 
     <!-- 書籍 查詢 -->
-    <section id="book" class="tab-content d-none fade-in scroll-animate">
+    <section id="book" class="tab-content d-none fade-in">
       <div class="search-container mb-4">
         <h5 class="search-title"><i class="fas fa-search"></i> 書籍資料檢索</h5>
         <div class="row align-items-end g-3">
@@ -734,18 +512,18 @@
       <div class="table-responsive mb-5">
         <table class="table table-bordered table-hover text-center">
           <colgroup>
-            <col style="--col-width:4%"><!-- 序號 -->
-            <col style="--col-width:18%"><!-- 書名 -->
-            <col style="--col-width:10%"><!-- 作者 -->
-            <col style="--col-width:10%"><!-- 出版者 -->
-            <col style="--col-width:6%"><!-- 出版年 -->
-            <col style="--col-width:9%"><!-- 分類 -->
-            <col style="--col-width:9%"><!-- ISBN -->
-            <col style="--col-width:8%"><!-- 藏書位置 -->
-            <col style="--col-width:5%"><!-- 數量 -->
-            <col style="--col-width:9%"><!-- 已借出 -->
-            <col style="--col-width:7%"><!-- 歸還日期 -->
-            <col style="--col-width:5%"><!-- 操作 -->
+            <col style="width:4%"><!-- 序號 -->
+            <col style="width:18%"><!-- 書名 -->
+            <col style="width:10%"><!-- 作者 -->
+            <col style="width:10%"><!-- 出版者 -->
+            <col style="width:6%"><!-- 出版年 -->
+            <col style="width:9%"><!-- 分類 -->
+            <col style="width:9%"><!-- ISBN -->
+            <col style="width:8%"><!-- 藏書位置 -->
+            <col style="width:5%"><!-- 數量 -->
+            <col style="width:5%"><!-- 已借出 -->
+            <col style="width:8%"><!-- 歸還日期 -->
+            <col style="width:8%"><!-- 操作 -->
           </colgroup>
           <thead>
             <tr>
@@ -760,7 +538,7 @@
     </section>
 
     <!-- 借出 查詢 -->
-    <section id="borrow" class="tab-content d-none fade-in scroll-animate">
+    <section id="borrow" class="tab-content d-none fade-in">
       <div class="search-container mb-4">
         <h5 class="search-title"><i class="fas fa-calendar-check"></i> 借出書籍狀態</h5>
         <p class="text-muted">顯示全部已借出的書籍清單及狀態，可直接點擊「還」按鈕進行書籍歸還操作。</p>
@@ -853,54 +631,12 @@
     function getBorrowedRecords(){return JSON.parse(localStorage.getItem(BORROW_KEY)||'[]');}
     function setBorrowedRecords(r){localStorage.setItem(BORROW_KEY,JSON.stringify(r));}
     document.addEventListener('DOMContentLoaded',()=>{
-      // 顯示頁面載入進度條
-      const loader = document.getElementById('page-loader');
-      loader.style.display = 'block';
-      
-      // 動態產生多個小氣泡動畫
-      document.querySelectorAll('.stat-card').forEach(card => {
-        const bubbles = document.createElement('div');
-        bubbles.className = 'bubbles';
-        for(let i=0; i<7; i++) { // 7顆小氣泡
-          const bubble = document.createElement('div');
-          bubble.className = 'bubble';
-          const size = Math.random() * 18 + 12; // 12~30px
-          bubble.style.width = `${size}px`;
-          bubble.style.height = `${size}px`;
-          bubble.style.left = `${Math.random() * 90}%`;
-          bubble.style.bottom = `${Math.random() * 30}%`;
-          bubble.style.animationDuration = `${6 + Math.random()*4}s`;
-          bubble.style.animationDelay = `${Math.random()*8}s`;
-          bubbles.appendChild(bubble);
-        }
-        card.appendChild(bubbles);
-      });
-      
-      // 滾動動畫觀察器
-      const scrollObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-          }
-        });
-      }, { threshold: 0.1 });
-      
-      // 監聽所有需要滾動動畫的元素
-      document.querySelectorAll('.scroll-animate').forEach(el => {
-        scrollObserver.observe(el);
-      });
-      
       // 預加載所有數據
       Promise.all([
         loadCSVAsync('thesis.csv', 'thesis'),
         loadCSVAsync('journal.csv', 'journal'),
         loadCSVAsync('books.csv', 'book')
       ]).then(() => {
-        // 完成數據載入後隱藏進度條
-        setTimeout(() => {
-          loader.style.display = 'none';
-        }, 2000);
-        
         // 完成所有數據加載後才顯示第一個分頁
         switchTab('thesis', document.querySelector('.nav-link.active'));
         
@@ -942,141 +678,73 @@
       });
     }
     function filterData(type) {
-      // 顯示處理中進度條
-      const loader = document.getElementById('page-loader');
-      loader.style.display = 'block';
+      const filters = Array.from(document.querySelectorAll(`#${type} .filter`))
+        .filter(input => input.value.trim() !== '');
       
-      setTimeout(() => {
-        const filters = Array.from(document.querySelectorAll(`#${type} .filter`))
-          .filter(input => input.value.trim() !== '');
-        
-        // 如果沒有任何過濾條件，顯示所有資料
-        if (filters.length === 0) {
-          render(type);
-          loader.style.display = 'none';
-          return;
-        }
-        
-        // 過濾符合條件的資料
-        const filtered = dataStore[type].filter(row => {
-          return filters.every(input => {
-            const key = input.dataset.key;
-            const value = input.value.trim().toLowerCase();
-            if (!row[key]) return false;
-            
-            return row[key].toString().toLowerCase().includes(value);
-          });
+      // 如果沒有任何過濾條件，顯示所有資料
+      if (filters.length === 0) {
+        render(type);
+        return;
+      }
+      
+      // 過濾符合條件的資料
+      const filtered = dataStore[type].filter(row => {
+        return filters.every(input => {
+          const key = input.dataset.key;
+          const value = input.value.trim().toLowerCase();
+          if (!row[key]) return false;
+          
+          return row[key].toString().toLowerCase().includes(value);
+        });
+      });
+      
+      // 渲染過濾後的結果
+      const body = document.getElementById(`${type}-body`);
+      body.innerHTML = '';
+      filtered.forEach(r => {
+        const tr = document.createElement('tr');
+        Object.values(r).forEach(v => {
+          const td = document.createElement('td');
+          td.textContent = v;
+          tr.appendChild(td);
         });
         
-        // 渲染過濾後的結果
-        const body = document.getElementById(`${type}-body`);
-        body.innerHTML = '';
-        
-        filtered.forEach((r, index) => {
-          const tr = document.createElement('tr');
+        if(type === 'book') {
+          const td = document.createElement('td'),
+                btn = document.createElement('button');
+          const borrowedCount = getBorrowedRecords().filter(record => record.ISBN === r['ISBN']).length;
           
-          if(type === 'book') {
-            // 處理書籍特殊欄位
-            const borrowedRecords = getBorrowedRecords().filter(record => record.ISBN === r['ISBN']);
-            const borrowedCount = borrowedRecords.length;
-            const totalCount = Number(r['數量']) || 0;
-            const latestReturnDate = borrowedCount > 0 ? borrowedRecords[borrowedCount-1].應還日 : '';
-            
-            // 按欄位順序填充資料
-            Object.keys(r).forEach((key, colIndex) => {
-              const td = document.createElement('td');
-              
-              // 書名欄位加上特殊樣式
-              if(key === '書名') {
-                td.className = 'book-title';
-              }
-              
-              // 已借出欄位顯示實際借出數量
-              if(key === '已借出') {
-                // 簡化顯示，僅顯示數字
-                td.textContent = borrowedCount;
-              }
-              // 歸還日期欄位顯示最近的歸還日期
-              else if(key === '歸還日期') {
-                td.textContent = latestReturnDate;
-              }
-              else {
-                td.textContent = r[key];
-              }
-              tr.appendChild(td);
-            });
+          btn.className = `btn btn-sm ${borrowedCount >= Number(r['數量']) ? 'btn-secondary disabled' : 'btn-primary'}`;
+          btn.innerHTML = '<i class="fas fa-hand-holding-heart"></i> 借';
           
-            // 增加借閱按鈕
-            const td = document.createElement('td');
-            const btn = document.createElement('button');
-            const canBorrow = borrowedCount < totalCount;
-            
-            btn.className = `btn btn-sm borrow-button ${canBorrow ? 'btn-primary' : 'btn-secondary disabled'}`;
-            btn.innerHTML = canBorrow ? '<i class="fas fa-hand-holding-heart"></i> 可借' : '<i class="fas fa-ban"></i> 已滿';
-            
-            if(canBorrow) {
-              btn.onclick = () => openBorrowModal(r['書名'], r['ISBN']);
-            }
-            
-            td.appendChild(btn);
-            tr.appendChild(td);
-          } else {
-            // 非書籍的一般處理
-            Object.values(r).forEach(v => {
-              const td = document.createElement('td');
-              td.textContent = v;
-              tr.appendChild(td);
-            });
+          if(borrowedCount < Number(r['數量'])) {
+            btn.onclick = () => openBorrowModal(r['書名'], r['ISBN']);
           }
           
-          body.appendChild(tr);
-        });
+          td.appendChild(btn);
+          tr.appendChild(td);
+        }
         
-        // 隱藏進度條
-        loader.style.display = 'none';
-      }, 300); // 短暫延遲以確保進度條可見
+        body.appendChild(tr);
+      });
     }
     function render(type) {
       const body = document.getElementById(`${type}-body`);
       body.innerHTML = '';
-      
-      // 獲取7天內借閱的記錄
-      const recentBorrows = getBorrowedRecords().filter(record => {
-        const borrowDate = new Date(record.借出日);
-        const now = new Date();
-        const diffTime = Math.abs(now - borrowDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays <= 7;
-      });
-      
-      dataStore[type].forEach((r, index) => {
+      dataStore[type].forEach(r => {
         const tr = document.createElement('tr');
-        
-        // 判斷是否為近期借閱
-        const isRecentlyBorrowed = type === 'book' && recentBorrows.some(record => record.ISBN === r['ISBN']);
-        if (isRecentlyBorrowed) {
-          tr.classList.add('borrowed-item');
-        }
         
         if(type === 'book') {
           // 處理書籍特殊欄位
           const borrowedRecords = getBorrowedRecords().filter(record => record.ISBN === r['ISBN']);
           const borrowedCount = borrowedRecords.length;
-          const totalCount = Number(r['數量']) || 0;
           const latestReturnDate = borrowedCount > 0 ? borrowedRecords[borrowedCount-1].應還日 : '';
           
           // 按欄位順序填充資料
-          Object.keys(r).forEach((key, colIndex) => {
+          Object.keys(r).forEach(key => {
             const td = document.createElement('td');
-            
-            // 書名欄位加上特殊樣式
-            if(key === '書名') {
-              td.className = 'book-title';
-            }
-            
             // 已借出欄位顯示實際借出數量
             if(key === '已借出') {
-              // 簡化顯示，僅顯示數字
               td.textContent = borrowedCount;
             }
             // 歸還日期欄位顯示最近的歸還日期
@@ -1092,12 +760,10 @@
           // 增加借閱按鈕
           const td = document.createElement('td');
           const btn = document.createElement('button');
-          const canBorrow = borrowedCount < totalCount;
+          btn.className = `btn btn-sm ${borrowedCount >= Number(r['數量']) ? 'btn-secondary disabled' : 'btn-primary'}`;
+          btn.innerHTML = '<i class="fas fa-hand-holding-heart"></i> 借';
           
-          btn.className = `btn btn-sm borrow-button ${canBorrow ? 'btn-primary' : 'btn-secondary disabled'}`;
-          btn.innerHTML = canBorrow ? '<i class="fas fa-hand-holding-heart"></i> 可借' : '<i class="fas fa-ban"></i> 已滿';
-          
-          if(canBorrow) {
+          if(borrowedCount < Number(r['數量'])) {
             btn.onclick = () => openBorrowModal(r['書名'], r['ISBN']);
           }
           

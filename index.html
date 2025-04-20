@@ -880,23 +880,44 @@
   <script>
     const dataStore={ thesis:[], journal:[], book:[] };
     let currentBorrowBook;
-    const BORROW_KEY='borrowedRecords';
+    const BORROW_KEY='borrowedRecords'; // 已廢棄，改用 API
     function formatDate(d){const y=d.getFullYear(),m=('0'+(d.getMonth()+1)).slice(-2),day=('0'+d.getDate()).slice(-2);return`${y}-${m}-${day}`;}
-    function getBorrowedRecords(){return JSON.parse(localStorage.getItem(BORROW_KEY)||'[]');}
-    function setBorrowedRecords(r){localStorage.setItem(BORROW_KEY,JSON.stringify(r));}
+
+    // AJAX 取得資料
+    async function fetchData(type) {
+      let action = '';
+      if(type==='thesis') action='get_thesis';
+      if(type==='journal') action='get_journals';
+      if(type==='book') action='get_books';
+      const res = await fetch(`api.php?action=${action}`);
+      return await res.json();
+    }
+    async function fetchBorrowed() {
+      const res = await fetch('api.php?action=get_borrowed');
+      return await res.json();
+    }
+    async function updateStats() {
+      dataStore.thesis = await fetchData('thesis');
+      dataStore.journal = await fetchData('journal');
+      dataStore.book = await fetchData('book');
+      const borrowed = await fetchBorrowed();
+      document.getElementById('thesis-count').textContent = dataStore.thesis.length;
+      document.getElementById('journal-count').textContent = dataStore.journal.length;
+      document.getElementById('book-count').textContent = dataStore.book.length;
+      document.getElementById('borrow-count').textContent = borrowed.length;
+    }
     document.addEventListener('DOMContentLoaded',()=>{
       // 顯示頁面載入進度條
       const loader = document.getElementById('page-loader');
       loader.style.display = 'block';
-      
       // 動態產生多個小氣泡動畫
       document.querySelectorAll('.stat-card').forEach(card => {
         const bubbles = document.createElement('div');
         bubbles.className = 'bubbles';
-        for(let i=0; i<7; i++) { // 7顆小氣泡
+        for(let i=0; i<7; i++) {
           const bubble = document.createElement('div');
           bubble.className = 'bubble';
-          const size = Math.random() * 18 + 12; // 12~30px
+          const size = Math.random() * 18 + 12;
           bubble.style.width = `${size}px`;
           bubble.style.height = `${size}px`;
           bubble.style.left = `${Math.random() * 90}%`;
@@ -907,7 +928,6 @@
         }
         card.appendChild(bubbles);
       });
-      
       // 滾動動畫觀察器
       const scrollObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -916,32 +936,24 @@
           }
         });
       }, { threshold: 0.1 });
-      
-      // 監聽所有需要滾動動畫的元素
       document.querySelectorAll('.scroll-animate').forEach(el => {
         scrollObserver.observe(el);
       });
-      
-      // 預加載所有數據
+      // AJAX 載入所有資料
       Promise.all([
-        loadCSVAsync('thesis.csv', 'thesis'),
-        loadCSVAsync('journal.csv', 'journal'),
-        loadCSVAsync('books.csv', 'book')
-      ]).then(() => {
-        // 完成數據載入後隱藏進度條
-        setTimeout(() => {
-          loader.style.display = 'none';
-        }, 2000);
-        
-        // 完成所有數據加載後才顯示第一個分頁
+        fetchData('thesis').then(data=>{dataStore.thesis=data;}),
+        fetchData('journal').then(data=>{dataStore.journal=data;}),
+        fetchData('book').then(data=>{dataStore.book=data;}),
+        fetchBorrowed().then(data=>{dataStore.borrowed=data;})
+      ]).then(()=>{
+        setTimeout(()=>{loader.style.display='none';},2000);
+        updateStats();
         switchTab('thesis', document.querySelector('.nav-link.active'));
-        
-        // 綁定即時搜尋事件
-        document.querySelectorAll('.filter').forEach(input => {
-          input.addEventListener('input', function() {
-            if(document.getElementById('thesis').classList.contains('d-none') === false) filterData('thesis');
-            if(document.getElementById('journal').classList.contains('d-none') === false) filterData('journal');
-            if(document.getElementById('book').classList.contains('d-none') === false) filterData('book');
+        document.querySelectorAll('.filter').forEach(input=>{
+          input.addEventListener('input',function(){
+            if(document.getElementById('thesis').classList.contains('d-none')===false) filterData('thesis');
+            if(document.getElementById('journal').classList.contains('d-none')===false) filterData('journal');
+            if(document.getElementById('book').classList.contains('d-none')===false) filterData('book');
           });
         });
       });
@@ -951,263 +963,147 @@
       btn.classList.add('active');
       document.querySelectorAll('.tab-content').forEach(s=>s.classList.add('d-none'));
       document.getElementById(id).classList.remove('d-none');
-      
-      // 已經預加載了所有數據，不再需要切換時加載
+      updateStats();
       if (id === 'borrow') {
         loadBorrowedList();
       } else {
         render(id);
       }
     }
-    function loadCSVAsync(file, type) {
-      return new Promise((resolve) => {
-        Papa.parse(file, {
-          download: true,
-          header: true,
-          skipEmptyLines: true,
-          complete: r => {
-            dataStore[type] = r.data;
-            updateStats();
-            resolve(r.data);
-          }
-        });
-      });
-    }
-    function filterData(type) {
-      // 顯示處理中進度條
+    async function filterData(type) {
       const loader = document.getElementById('page-loader');
       loader.style.display = 'block';
-      
-      setTimeout(() => {
-        const filters = Array.from(document.querySelectorAll(`#${type} .filter`))
-          .filter(input => input.value.trim() !== '');
-        
-        // 如果沒有任何過濾條件，顯示所有資料
-        if (filters.length === 0) {
-          render(type);
-          loader.style.display = 'none';
-          return;
-        }
-        
-        // 過濾符合條件的資料
-        const filtered = dataStore[type].filter(row => {
-          return filters.every(input => {
-            const key = input.dataset.key;
-            const value = input.value.trim().toLowerCase();
-            if (!row[key]) return false;
-            
-            return row[key].toString().toLowerCase().includes(value);
+      setTimeout(async ()=>{
+        const filters = Array.from(document.querySelectorAll(`#${type} .filter`)).filter(input=>input.value.trim()!=='');
+        let data = dataStore[type];
+        if (filters.length > 0) {
+          data = data.filter(row => {
+            return filters.every(input => {
+              const key = input.dataset.key;
+              const value = input.value.trim().toLowerCase();
+              if (!row[key]) return false;
+              return row[key].toString().toLowerCase().includes(value);
+            });
           });
-        });
-        
-        // 渲染過濾後的結果
-        const body = document.getElementById(`${type}-body`);
-        body.innerHTML = '';
-        
-        filtered.forEach((r, index) => {
-          const tr = document.createElement('tr');
-          
-          if(type === 'book') {
-            // 處理書籍特殊欄位
-            const borrowedRecords = getBorrowedRecords().filter(record => record.ISBN === r['ISBN']);
+        }
+        render(type, data);
+        loader.style.display = 'none';
+      }, 300);
+    }
+    function render(type, data) {
+      const body = document.getElementById(`${type}-body`);
+      body.innerHTML = '';
+      if(type==='book') {
+        // 書籍分頁需取得借閱紀錄
+        fetchBorrowed().then(borrowed => {
+          (data||dataStore[type]).forEach((r, index) => {
+            const tr = document.createElement('tr');
+            const borrowedRecords = borrowed.filter(record => record.ISBN === r['ISBN']);
             const borrowedCount = borrowedRecords.length;
             const totalCount = Number(r['數量']) || 0;
             const latestReturnDate = borrowedCount > 0 ? borrowedRecords[borrowedCount-1].應還日 : '';
-            
-            // 按欄位順序填充資料
             Object.keys(r).forEach((key, colIndex) => {
               const td = document.createElement('td');
-              
-              // 書名欄位加上特殊樣式
-              if(key === '書名') {
-                td.className = 'book-title';
-              }
-              
-              // 已借出欄位顯示實際借出數量
-              if(key === '已借出') {
-                // 簡化顯示，僅顯示數字
-                td.textContent = borrowedCount;
-              }
-              // 歸還日期欄位顯示最近的歸還日期
-              else if(key === '歸還日期') {
-                td.textContent = latestReturnDate;
-              }
-              else {
-                td.textContent = r[key];
-              }
+              if(key === '書名') td.className = 'book-title';
+              if(key === '已借出') td.textContent = borrowedCount;
+              else if(key === '歸還日期') td.textContent = latestReturnDate;
+              else td.textContent = r[key];
               tr.appendChild(td);
             });
-          
-            // 增加借閱按鈕
+            // 借閱按鈕
             const td = document.createElement('td');
             const btn = document.createElement('button');
             const canBorrow = borrowedCount < totalCount;
-            
             btn.className = `btn btn-sm borrow-button ${canBorrow ? 'btn-primary' : 'btn-secondary disabled'}`;
             btn.innerHTML = canBorrow ? '<i class="fas fa-hand-holding-heart"></i> 可借' : '<i class="fas fa-ban"></i> 已滿';
-            
-            if(canBorrow) {
-              btn.onclick = () => openBorrowModal(r['書名'], r['ISBN']);
-            }
-            
+            if(canBorrow) btn.onclick = () => openBorrowModal(r['書名'], r['ISBN']);
             td.appendChild(btn);
             tr.appendChild(td);
-          } else {
-            // 非書籍的一般處理
-            Object.keys(r).forEach((key, colIndex) => {
-              const td = document.createElement('td');
-              // 論文查詢的論文名稱欄位加上 book-title class
-              if(type === 'thesis' && key === '論文名稱') {
-                td.className = 'book-title';
-              }
-              td.textContent = r[key];
-              tr.appendChild(td);
-            });
-          }
-          
-          body.appendChild(tr);
-        });
-        
-        // 隱藏進度條
-        loader.style.display = 'none';
-      }, 300); // 短暫延遲以確保進度條可見
-    }
-    function render(type) {
-      const body = document.getElementById(`${type}-body`);
-      body.innerHTML = '';
-      
-      // 獲取7天內借閱的記錄
-      const recentBorrows = getBorrowedRecords().filter(record => {
-        const borrowDate = new Date(record.借出日);
-        const now = new Date();
-        const diffTime = Math.abs(now - borrowDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays <= 7;
-      });
-      
-      dataStore[type].forEach((r, index) => {
-        const tr = document.createElement('tr');
-        
-        // 判斷是否為近期借閱
-        const isRecentlyBorrowed = type === 'book' && recentBorrows.some(record => record.ISBN === r['ISBN']);
-        if (isRecentlyBorrowed) {
-          tr.classList.add('borrowed-item');
-        }
-        
-        if(type === 'book') {
-          // 處理書籍特殊欄位
-          const borrowedRecords = getBorrowedRecords().filter(record => record.ISBN === r['ISBN']);
-          const borrowedCount = borrowedRecords.length;
-          const totalCount = Number(r['數量']) || 0;
-          const latestReturnDate = borrowedCount > 0 ? borrowedRecords[borrowedCount-1].應還日 : '';
-          
-          // 按欄位順序填充資料
-          Object.keys(r).forEach((key, colIndex) => {
-            const td = document.createElement('td');
-            
-            // 書名欄位加上特殊樣式
-            if(key === '書名') {
-              td.className = 'book-title';
-            }
-            
-            // 已借出欄位顯示實際借出數量
-            if(key === '已借出') {
-              // 簡化顯示，僅顯示數字
-              td.textContent = borrowedCount;
-            }
-            // 歸還日期欄位顯示最近的歸還日期
-            else if(key === '歸還日期') {
-              td.textContent = latestReturnDate;
-            }
-            else {
-              td.textContent = r[key];
-            }
-            tr.appendChild(td);
+            body.appendChild(tr);
           });
-          
-          // 增加借閱按鈕
-          const td = document.createElement('td');
-          const btn = document.createElement('button');
-          const canBorrow = borrowedCount < totalCount;
-          
-          btn.className = `btn btn-sm borrow-button ${canBorrow ? 'btn-primary' : 'btn-secondary disabled'}`;
-          btn.innerHTML = canBorrow ? '<i class="fas fa-hand-holding-heart"></i> 可借' : '<i class="fas fa-ban"></i> 已滿';
-          
-          if(canBorrow) {
-            btn.onclick = () => openBorrowModal(r['書名'], r['ISBN']);
-          }
-          
-          td.appendChild(btn);
-          tr.appendChild(td);
-        } else {
-          // 非書籍的一般處理
+        });
+      } else {
+        (data||dataStore[type]).forEach((r, index) => {
+          const tr = document.createElement('tr');
           Object.keys(r).forEach((key, colIndex) => {
             const td = document.createElement('td');
-            // 論文查詢的論文名稱欄位加上 book-title class
-            if(type === 'thesis' && key === '論文名稱') {
-              td.className = 'book-title';
-            }
+            if(type === 'thesis' && key === '論文名稱') td.className = 'book-title';
             td.textContent = r[key];
             tr.appendChild(td);
           });
-        }
-        
+          body.appendChild(tr);
+        });
+      }
+    }
+    function openBorrowModal(title,isbn){currentBorrowBook={title,isbn};document.getElementById('modal-book-title').textContent=title;const today=new Date(),ret=new Date();ret.setDate(today.getDate()+14);document.getElementById('borrow-date').textContent=formatDate(today);document.getElementById('return-date').textContent=formatDate(ret);new bootstrap.Modal(document.getElementById('borrow-modal')).show();}
+    async function confirmBorrow() {
+      const cls = document.getElementById('class-input').value.trim(),
+            nm = document.getElementById('name-input').value.trim();
+      if(!cls) { alert('請輸入班級！'); document.getElementById('class-input').focus(); return; }
+      if(!nm) { alert('請輸入姓名！'); document.getElementById('name-input').focus(); return; }
+      // 送出借書請求
+      const res = await fetch('api.php?action=borrow_book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          '班級': cls,
+          '姓名': nm,
+          '書名': currentBorrowBook.title,
+          'ISBN': currentBorrowBook.isbn,
+          '借出日': document.getElementById('borrow-date').textContent,
+          '應還日': document.getElementById('return-date').textContent
+        })
+      });
+      const result = await res.json();
+      if(result.success) {
+        bootstrap.Modal.getInstance(document.getElementById('borrow-modal')).hide();
+        alert(`《${currentBorrowBook.title}》已成功借出！\n應還日期：${document.getElementById('return-date').textContent}`);
+        render('book');
+        loadBorrowedList();
+        updateStats();
+      } else {
+        alert(result.msg || '借書失敗');
+      }
+    }
+    async function loadBorrowedList(){
+      const body=document.getElementById('borrow-body');
+      const rec=await fetchBorrowed();
+      body.innerHTML='';
+      rec.forEach((r,i)=>{
+        const tr=document.createElement('tr');
+        ['班級','姓名','書名','ISBN','借出日','應還日'].forEach(k=>{
+          const td=document.createElement('td');
+          td.textContent=r[k];
+          tr.appendChild(td);
+        });
+        const td=document.createElement('td'),btn=document.createElement('button');
+        btn.className='btn btn-success btn-sm';
+        btn.textContent='還';
+        btn.onclick=async()=>{
+          // 呼叫 API 還書
+          const res = await fetch('api.php?action=return_book', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              '班級': r['班級'],
+              '姓名': r['姓名'],
+              'ISBN': r['ISBN']
+            })
+          });
+          const result = await res.json();
+          if(result.success) {
+            loadBorrowedList();
+            render('book');
+            updateStats();
+          } else {
+            alert(result.msg || '還書失敗');
+          }
+        };
+        td.appendChild(btn);
+        tr.appendChild(td);
         body.appendChild(tr);
       });
     }
-    function updateStats(){document.getElementById('thesis-count').textContent=dataStore.thesis.length;document.getElementById('journal-count').textContent=dataStore.journal.length;document.getElementById('book-count').textContent=dataStore.book.length;document.getElementById('borrow-count').textContent=getBorrowedRecords().length;}
-    function openBorrowModal(title,isbn){currentBorrowBook={title,isbn};document.getElementById('modal-book-title').textContent=title;const today=new Date(),ret=new Date();ret.setDate(today.getDate()+14);document.getElementById('borrow-date').textContent=formatDate(today);document.getElementById('return-date').textContent=formatDate(ret);new bootstrap.Modal(document.getElementById('borrow-modal')).show();}
-    function confirmBorrow() {
-      const cls = document.getElementById('class-input').value.trim(),
-            nm = document.getElementById('name-input').value.trim();
-      
-      // 強化表單驗證
-      if(!cls) {
-        alert('請輸入班級！');
-        document.getElementById('class-input').focus();
-        return;
-      }
-      
-      if(!nm) {
-        alert('請輸入姓名！');
-        document.getElementById('name-input').focus();
-        return;
-      }
-      
-      // 檢查是否超過可借數量
-      const borrowedCount = getBorrowedRecords().filter(record => record.ISBN === currentBorrowBook.isbn).length;
-      const bookData = dataStore.book.find(book => book.ISBN === currentBorrowBook.isbn);
-      
-      if(bookData && borrowedCount >= Number(bookData['數量'])) {
-        alert('此書已無庫存可借！');
-        return;
-      }
-      
-      const rec = getBorrowedRecords();
-      rec.push({
-        班級: cls,
-        姓名: nm,
-        書名: currentBorrowBook.title,
-        ISBN: currentBorrowBook.isbn,
-        借出日: document.getElementById('borrow-date').textContent,
-        應還日: document.getElementById('return-date').textContent
-      });
-      
-      setBorrowedRecords(rec);
-      bootstrap.Modal.getInstance(document.getElementById('borrow-modal')).hide();
-      
-      // 顯示借閱成功訊息
-      alert(`《${currentBorrowBook.title}》已成功借出！\n應還日期：${document.getElementById('return-date').textContent}`);
-      
-      // 更新借書列表和統計數字
-      if(document.getElementById('book').classList.contains('d-none') === false) {
-        render('book'); // 更新書籍列表的借閱狀態
-      }
-      
-      loadBorrowedList();
-      updateStats();
-    }
-    function loadBorrowedList(){const body=document.getElementById('borrow-body'),rec=getBorrowedRecords();body.innerHTML='',rec.forEach((r,i)=>{const tr=document.createElement('tr');['班級','姓名','書名','ISBN','借出日','應還日'].forEach(k=>{const td=document.createElement('td');td.textContent=r[k];tr.appendChild(td);});const td=document.createElement('td'),btn=document.createElement('button');btn.className='btn btn-success btn-sm',btn.textContent='還',btn.onclick=()=>{rec.splice(i,1),setBorrowedRecords(rec),loadBorrowedList(),updateStats();},td.appendChild(btn),tr.appendChild(td),body.appendChild(tr);});}
   </script>
 </body>
 </html>
