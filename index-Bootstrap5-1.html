@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>海巡署圖書查詢系統</title>
+
+  <!-- Bootstrap CSS & JS -->
+  <link rel="stylesheet" href="/assets/bootstrap.min.css">
+  <script defer src="/assets/bootstrap.bundle.min.js"></script>
+
+  <!-- PapaParse (本機離線版)，並提供 CDN fallback -->
+  <script src="/assets/js/papaparse.min.js"></script>
+  <script>
+    if (!window.Papa) {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
+
+  <!-- 客製化 CSS -->
+  <style>
+    body { background-color: #f3f4f6; }
+    .banner { background: linear-gradient(to right, #3f51b5, #2196f3); color: #fff; }
+    .banner h1 { margin-bottom: 0; }
+    .table { border-radius: .5rem; overflow: hidden; }
+    tr:hover td { background-color: #e8f5e9; }
+    .table-responsive { overflow-x: auto; }
+  </style>
+</head>
+<body class="bg-light">
+
+  <!-- Banner -->
+  <header class="banner py-3 d-flex align-items-center px-4">
+    <img src="logo.png" alt="logo" class="me-3" style="height:80px" />
+    <div>
+      <h1 class="h5">海巡署教育訓練測考中心圖書查詢系統</h1>
+      <p class="mb-0 small">Coast Guard Administration Education and Training Testing Center Library Query System</p>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="mt-4">
+    <ul class="nav nav-pills justify-content-center mb-3">
+      <li class="nav-item"><button class="nav-link active" onclick="switchTab('thesis', this)">論文查詢</button></li>
+      <li class="nav-item"><button class="nav-link" onclick="switchTab('journal', this)">期刊查詢</button></li>
+      <li class="nav-item"><button class="nav-link" onclick="switchTab('book', this)">書籍查詢</button></li>
+      <li class="nav-item"><button class="nav-link" onclick="switchTab('borrow', this)">借出查詢</button></li>
+    </ul>
+  </nav>
+
+  <div class="container-fluid px-4">
+    <!-- 論文 查詢 -->
+    <section id="thesis" class="tab-content">
+      <div class="card mb-3">
+        <div class="card-body d-flex flex-wrap align-items-center gap-2">
+          <label class="mb-0">📚論文標題：</label>
+          <input class="form-control filter" style="width:200px;" data-key="論文名稱">
+          <label class="mb-0">🧑‍🎓研究生：</label>
+          <input class="form-control filter" style="width:150px;" data-key="研究生">
+          <label class="mb-0">👨‍🏫指導教授：</label>
+          <input class="form-control filter" style="width:150px;" data-key="指導教授">
+          <button class="btn btn-primary" onclick="filterData('thesis')">搜尋</button>
+        </div>
+      </div>
+      <div class="table-responsive mb-5">
+        <table class="table table-bordered table-striped table-hover text-center text-nowrap">
+          <thead class="table-primary">
+            <tr>
+              <th>序號</th><th>論文名稱</th><th>研究生</th><th>指導教授</th><th>校院名稱</th>
+              <th>系所名稱</th><th>學位類別</th><th>畢業學年度</th><th>論文出版年</th>
+            </tr>
+          </thead>
+          <tbody id="thesis-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 期刊 查詢 -->
+    <section id="journal" class="tab-content d-none">
+      <div class="card mb-3">
+        <div class="card-body d-flex flex-wrap align-items-center gap-2">
+          <label class="mb-0">📑刊名：</label>
+          <input class="form-control filter" style="width:200px;" data-key="刊名">
+          <label class="mb-0">期數：</label>
+          <input class="form-control filter" style="width:100px;" data-key="期數">
+          <label class="mb-0">出版者：</label>
+          <input class="form-control filter" style="width:200px;" data-key="出版者">
+          <button class="btn btn-primary" onclick="filterData('journal')">搜尋</button>
+        </div>
+      </div>
+      <div class="table-responsive mb-5">
+        <table class="table table-bordered table-striped table-hover text-center text-nowrap">
+          <thead class="table-info">
+            <tr>
+              <th>序號</th><th>刊名</th><th>出版者</th><th>作者</th><th>期數</th>
+              <th>期刊分類</th><th>藏書位置</th>
+            </tr>
+          </thead>
+          <tbody id="journal-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 書籍 查詢 -->
+    <section id="book" class="tab-content d-none">
+      <div class="card mb-3">
+        <div class="card-body d-flex flex-wrap align-items-center gap-2">
+          <label class="mb-0">📖書名：</label>
+          <input class="form-control filter" style="width:200px;" data-key="書名">
+          <label class="mb-0">作者：</label>
+          <input class="form-control filter" style="width:150px;" data-key="作者">
+          <label class="mb-0">分類：</label>
+          <input class="form-control filter" style="width:150px;" data-key="分類">
+          <button class="btn btn-primary" onclick="filterData('book')">搜尋</button>
+        </div>
+      </div>
+      <div class="table-responsive mb-5">
+        <table class="table table-bordered table-striped table-hover text-center text-nowrap">
+          <colgroup>
+            <col style="width:4%"><!-- 序號 -->
+            <col style="width:18%"><!-- 書名 -->
+            <col style="width:10%"><!-- 作者 -->
+            <col style="width:10%"><!-- 出版者 -->
+            <col style="width:6%"><!-- 出版年 -->
+            <col style="width:9%"><!-- 分類 -->
+            <col style="width:9%"><!-- ISBN -->
+            <col style="width:8%"><!-- 藏書位置 -->
+            <col style="width:5%"><!-- 數量 -->
+            <col style="width:5%"><!-- 已借出 -->
+            <col style="width:8%"><!-- 歸還日期 -->
+            <col style="width:8%"><!-- 操作 -->
+          </colgroup>
+          <thead class="table-success">
+            <tr>
+              <th>序號</th><th>書名</th><th>作者</th><th>出版者</th><th>出版年</th>
+              <th>分類</th><th>ISBN</th><th>藏書位置</th><th>數量</th>
+              <th>已借出</th><th>歸還日期</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="book-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 借出 查詢 -->
+    <section id="borrow" class="tab-content d-none">
+      <div class="table-responsive mb-5">
+        <table class="table table-bordered table-striped table-hover text-center text-nowrap">
+          <thead class="table-warning">
+            <tr>
+              <th>班級</th><th>姓名</th><th>書名</th><th>ISBN</th><th>借出日</th>
+              <th>應還日</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="borrow-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Borrow Modal -->
+  <div class="modal fade" id="borrow-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">📖 借書登記</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p id="modal-book-title" class="fw-semibold"></p>
+          <div class="mb-3"><label class="form-label">班級</label><input id="class-input" class="form-control"></div>
+          <div class="mb-3"><label class="form-label">姓名</label><input id="name-input" class="form-control"></div>
+          <p>借出日：<span id="borrow-date"></span></p>
+          <p>應還日：<span id="return-date"></span></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" onclick="confirmBorrow()">確認借出</button>
+          <button class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    const dataStore={ thesis:[], journal:[], book:[] };
+    let currentBorrowBook;
+    const columns={ thesis:["序號","論文名稱","研究生","指導教授","校院名稱","系所名稱","學位類別","畢業學年度","論文出版年"], journal:["序號","刊名","出版者","作者","期數","期刊分類","藏書位置"], book:["序號","書名","作者","出版者","出版年","分類","ISBN","藏書位置","數量","已借出","歸還日期"] };
+
+    function switchTab(id,btn){
+      document.querySelectorAll('.nav-link').forEach(el=>el.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(sec=>sec.classList.add('d-none'));
+      if(id!=='borrow' && !dataStore[id].length) loadCSV(id+'.csv',id);
+      if(id==='borrow') loadBorrowedList();
+      document.getElementById(id).classList.remove('d-none');
+    }
+
+    function loadCSV(file,type){
+      Papa.parse(file,{ download:true, header:true, skipEmptyLines:true, bom:true,
+        complete(res){ dataStore[type]=res.data; render(type);} });
+    }
+
+    function render(type){
+      const body=document.getElementById(type+'-body'); body.innerHTML='';
+      dataStore[type].forEach(r=>{
+        const tr=document.createElement('tr');
+        columns[type].forEach(col=>{
+          const td=document.createElement('td');
+          if(type==='book'&&(col==='已借出'||col==='歸還日期')){
+            const recs=JSON.parse(localStorage.getItem('borrowRecords')||'[]').filter(x=>x.ISBN===r.ISBN);
+            td.textContent=col==='已借出'?recs.length:(recs.at(-1)?.returnDate||'');
+          }else td.textContent=r[col]||'';
+          tr.appendChild(td);
+        });
+        if(type==='book'){
+          const td=document.createElement('td'), total=+r.數量, borrowed=JSON.parse(localStorage.getItem('borrowRecords')||'[]').filter(x=>x.ISBN===r.ISBN).length;
+          td.innerHTML=borrowed<total?`<button class="btn btn-sm btn-success" onclick='openBorrowModal(${JSON.stringify(r)})'>借</button>`:'無';
+          tr.appendChild(td);
+        }
+        body.appendChild(tr);
+      });
+    }
+
+    function filterData(type){
+      const inputs=[...document.querySelectorAll(`#${type} .filter`)];
+      const filtered=dataStore[type].filter(r=>inputs.every(i=>r[i.dataset.key]?.toString().toLowerCase().includes(i.value.trim().toLowerCase())));
+      const body=document.getElementById(type+'-body'); body.innerHTML='';
+      filtered.forEach(r=>{
+        const tr=document.createElement('tr');
+        columns[type].forEach(col=>{
+          const td=document.createElement('td');
+          if(type==='book'&&(col==='已借出'||col==='歸還日期')){
+            const recs=JSON.parse(localStorage.getItem('borrowRecords')||'[]').filter(x=>x.ISBN===r.ISBN);
+            td.textContent=col==='已借出'?recs.length:(recs.at(-1)?.returnDate||'');
+          }else td.textContent=r[col]||'';
+          tr.appendChild(td);
+        });
+        if(type==='book'){
+          const td=document.createElement('td'), total=+r.數량, borrowed=JSON.parse(localStorage.getItem('borrowRecords')||'[]').filter(x=>x.ISBN===r.ISBN).length;
+          td.innerHTML=borrowed<total?`<button class="btn btn-sm btn-success" onclick='openBorrowModal(${JSON.stringify(r)})'>借</button>`:'無';
+          tr.appendChild(td);
+        }
+        body.appendChild(tr);
+      });
+    }
+
+    function openBorrowModal(data){
+      currentBorrowBook=data;
+      const today=new Date(), ret=new Date(today); ret.setDate(today.getDate()+14);
+      document.getElementById('modal-book-title').textContent=data.書名;
+      document.getElementById('borrow-date').textContent=today.toISOString().slice(0,10);
+      document.getElementById('return-date').textContent=ret.toISOString().slice(0,10);
+      const modalEl=document.getElementById('borrow-modal');
+      const modal=bootstrap.Modal.getOrCreateInstance(modalEl,{backdrop:'static'});
+      modal.show();
+    }
+
+    function confirmBorrow(){
+      const cls=document.getElementById('class-input').value, name=document.getElementById('name-input').value;
+      if(!cls||!name) return alert('請輸入完整資訊');
+      const recs=JSON.parse(localStorage.getItem('borrowRecords')||'[]');
+      recs.push({ class:cls,name,book:currentBorrowBook.書名,ISBN:currentBorrowBook.ISBN,borrowDate:document.getElementById('borrow-date').textContent,returnDate:document.getElementById('return-date').textContent });
+      localStorage.setItem('borrowRecords',JSON.stringify(recs));
+      render('book'); bootstrap.Modal.getInstance(document.getElementById('borrow-modal')).hide(); alert('✅ 借書成功');
+    }
+
+    function loadBorrowedList(){
+      const body=document.getElementById('borrow-body'); body.innerHTML='';
+      JSON.parse(localStorage.getItem('borrowRecords')||'[]').forEach((r,i)=>{ const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${r.class}</td><td>${r.name}</td><td>${r.book}</td><td>${r.ISBN}</td><td>${r.borrowDate}</td><td>${r.returnDate}</td><td><button class="btn btn-sm btn-danger" onclick="returnBook(${i})">還</button></td>`;
+        body.appendChild(tr);
+      });
+    }
+
+    function returnBook(i){
+      const recs=JSON.parse(localStorage.getItem('borrowRecords')||'[]'); recs.splice(i,1);
+      localStorage.setItem('borrowRecords',JSON.stringify(recs)); render('book'); loadBorrowedList();
+    }
+
+    window.onload=()=>{
+      loadCSV('thesis.csv','thesis');
+      loadCSV('journal.csv','journal');
+      loadCSV('books.csv','book');
+    };
+  </script>
+</body>
+</html>

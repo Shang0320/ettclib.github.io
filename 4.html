@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>海巡署圖書查詢系統</title>
+
+  <!-- Bootstrap CSS & JS -->
+  <link rel="stylesheet" href="/assets/bootstrap.min.css">
+  <script defer src="/assets/bootstrap.bundle.min.js"></script>
+
+  <!-- PapaParse (本機離線版) -->
+  <script src="/assets/js/papaparse.min.js"></script>
+
+  <!-- 內嵌圖標字體 (不需要外部連接) -->
+  <style>
+    @font-face {
+      font-family: 'CustomIcons';
+      src: url('data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAAAn0AAsAAAAADmQAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABHU1VCAAABCAAAADMAAABCsP6z7U9TLzIAAAE8AAAAQwAAAFZA70kfY21hcAAAAYAAAAC2AAACUDnY0fBnbHlmAAACOAAABXwAAAckbpGnCWhlYWQAAAe0AAAALwAAADYj4ZIQC2hlYQAAB+QAAAAdAAAAJAhABBhobXR4AAAIBAAAABIAAAAYF+kAAGxvY2EAAAggAAAADgAAAA4FQAQYbWF4cAAACDAAAAAeAAAAIAEcAIhuYW1lAAAIUAAAAUcAAAJhJPLgmHBvc3QAAAmYAAAAXQAAAH5+CcmNeJxjYGRgYOBikGPQYWB0cfMJYeBgYGGAAJAMY05meiJQDMoDyrGAaQ4gZoOIAgCKIwNPAHicY2BkEWWcwMDKwMHUyXSGgYGhH0IzvmYwYuRgYGBiYGVmwAoC0lxTGBwYqt8LMNf/z2NQYDzI+AgUZgTJAQDqEgzhAHicY2BgYGRgYOBkMGBgYCBIWnkyGJsYmICKA8G/v/8rKnAxs7FBMAAsCAtoAAADnwAhBAAA5wDsAOcAowCqAPcAAAOiAFkECgAAeJxjYGRgYOBiMGCwY2DUAaEMDBwMCMx/S5wEABJ0AVEAAHichZI9bsJAFITHYCjy06RApMyqIHSGX4mXAikiUVCk9IA3/sXG66AVN+ACHIITcAROwRUYe5tIMiDZWn/fzJt9XmABb3gQPHxuuU/2MGP0yRNM8Cm4hTn+BLdl/grukMfBXTzDp7qZ+4ngJ+W34BcshefgPjaTqeCByBzz1vt5uIcnfAtuYY3vwG3Z/hfcIb8Ed7HALNBljlZJmjtKbO0bZXKLJGVsrJfHKtWrlLd5pq1RBzMQbVlsytuLJBKDmtpoxXnlsLWFcq6WIQnspbUqOF2Zce7X2oTKRpDUkZXLKZV30tDiihVSWKToM1eggMMVFWIUXAvn5B5Rw+rRmMy8i+JZNEUfFXLJDMYVdTlKOrZusMQj8nKUzZXyGNlWVBFtxMaVkzWzWRO+DJVgDc+vy+3vNuUjHbBP5thtHuVsJXqQ+pDk/xV7Yys6qbYcHxC3nN2xoXqq9s45P6vZRG36BmnqbzQAAAB4nH1UbUhbVxg+77259yZNbuLNvW3UmsR6by7GJE3S6lSCSidTa4t16thwddR9VGQdTLqvUYYwGP1RGOyPOLqCFMHCYCCyH3tDNnDIQBgbDNq1HaOF4RjbYGPS5+T0JrXrfhy4533P85zzvO/zHImQMgGEA7AASiRVDdggUQPElIyBLKC5YBqlh/RQnpRTjIYG5UAsAdE0Gg8JDaMIgm8MPPeAXF4+ID8b+O7JaR6tH1KTClKNZ0gSoWCBEDRHXRBPINTjgXAYWEgD6YEQSIgcCIRwVAyLEVEMgKQKjIBf9Lq9bjkgSmQsFLAb3V0Wr8ky4rUMmcwmo+3U+wAKSJDQGJdlrgOqXo3AjsKPouTGlXRWlzKJU2kTzJtEfNXRoOy11ykyU3NbatbKFO+X1VeUqfbDhh0d1Tvwq8yEZbWmTCvWlEwfK1D7YmSQEHbZyeYRQoCHhgKnhFp5gDyPVqYbpbw9vbBYP1/xRllr6kU9jvNqNiYWOPHXWb/wdBTXp16p3n9kJ8HqiM/F+6YoJxrjJl9OXLpZyLxVkclRJDkM9/OkSA/pIp2Tp2FEsIBNiChbmb/kc2VWZXSxS8LVLwpbC95V17/QEUa9qLXxVlF8NxeN4Yrj+8MzZ0Ku32pTjlEeydxD5Z5RfoPm6x/oCbX40c9r3YNfkF5jN8rBZPBDqO++MUf4iBfbMb5T4OxQWPwopbCsNYI3gjxYhA37OcWrJU2kBUWl+8tISIXwbBQh2qN6MAiOqCoIoLJpCDpBU9LuZPnNtjMSWLyDf8NrX2YGhwGahiOZ0bOZUdpIZI82DdkGX/Dn5YxfmDVlzIXNBeaHRdKfXdiY3yhY2L8d1TZLqb1kkpQHfF7+pXlPyqaUPemCDx/5LfdJ9cKZaHNlXQMYN+rHJY2HNcQbMfGu3YgSvwDzC/TXyDR7YOQzTd8Uz/IK/wN7gJ5Mz6FpV0Vm8rtrNwfAMsAv5x2WvZuufSf+FxhvNT2oZw+hNXsweX6tvFD+fNtqehcbBYt51jlrWXcV1jfE7Wc+XYVrVVE/fvblLH7+hRZ7A/5nqD6aqpfV9adpubJKW11e1VXeZNW1nF3PcjxnbZ6/PNZM8QF/rn7zJ8FMm+WR1SvqLerIvjGMsUVjptcOOtFc5ZrMzqljbJNV11Qyp+lbOdOtVd/Iyt2Vat5N/wWOdshYAAAAeJxjYGRgYABijw3l7nh+m68M3CwMIHDdXwIzwej/9/+38L9k4QDyGRjYARIcAGDGDPUAAHicY2BkYGBg+MfAIMcg8P/+//v8LxkYgCIoQB4AVssG9nicY2FgYGDBYAZiRoYGDuQ0EwMDO4MBkpcDANRlAXUAAAAAAAAAlgDWAQABRgFgAYYAAHicY2BkYGBgYzBiYGYAASYg5gJCBob/YD4DAA+eAVsAeJx9kM1OwkAUhU/LTwJujAuX03FhTAOFAgkLo4kQNi7YsjDSH6btlDJDOy2Mz+FjuPIJfAyfxdOxLsSYdDrfPffMvZkC6OAHHs7PHTf2PLzjbHMVDXzZrlKuU+5RPrNdwxXObTfQxgj3g/s44sGuUb+13cAD3ux6UH3OE0bY4AnvOMM9Vn5Zg3I8YmZ7NmSXJMnkqB9qQbPzOI1UEohQR2HspzrXfFKsepJtg1hPOEpvzUlRPuXfS7XcbLZOxTZj7QsttJgrH3c5Q9yLNb2RGCidajGLNvlYijzlMr0PZMB4jjQFcjvhW7Z6jAARXS38EQICasZMxnCZEzBhXLLqhJXQ7NSKUWd1ZUU8YMWnKYWWVTD+/cVoVXqwpkO2V/9v1zZn7UzhTpUppZMYQ17vY8oDi6rYCQezgVTvmIgd+4UdVcvmjE9q9jLVY9qRuPTW7oDuJDDzVGu/1fQPZY5m9AAAAHicbcpBDkBAGIbhr66KWmpxgUFi0Y45ghOsLdO2wvGl5AASr+SfJxkxYsEaO7AaVFKZNdN0nXq0lTWGJj2KLqHNfk6BXrDEMeIyKjutbZdpFrDFQfdMCYk92xXDVWTl5/LyCR/FxBQM') format('woff');
+    }
+
+    [class^="icon-"], [class*=" icon-"] {
+      font-family: 'CustomIcons' !important;
+      speak: never;
+      font-style: normal;
+      font-weight: normal;
+      font-variant: normal;
+      text-transform: none;
+      line-height: 1;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .icon-book:before { content: "\e900"; }
+    .icon-search:before { content: "\e901"; }
+    .icon-user:before { content: "\e902"; }
+    .icon-users:before { content: "\e903"; }
+    .icon-newspaper:before { content: "\e904"; }
+    .icon-graduation-cap:before { content: "\e905"; }
+    .icon-calendar:before { content: "\e906"; }
+    .icon-check:before { content: "\e907"; }
+    .icon-pencil:before { content: "\e908"; }
+    .icon-building:before { content: "\e909"; }
+    .icon-tag:before { content: "\e90a"; }
+    .icon-heart:before { content: "\e90b"; }
+    .icon-cancel:before { content: "\e90c"; }
+  </style>
+
+  <!-- 客製化 CSS -->
+  <style>
+    :root {
+      --primary-color: #1a56db;
+      --secondary-color: #0694a2;
+      --accent-color: #3f83f8;
+      --light-color: #f9fafb;
+      --dark-color: #111827;
+      --gradient-start: #1e40af;
+      --gradient-end: #0369a1;
+    }
+    
+    body {
+      background-color: #f0f4f8;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    
+    /* 自訂動畫 */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.6s ease forwards;
+    }
+    
+    /* 頂部橫幅 */
+    .banner {
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .banner::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%);
+      animation: rotate 20s linear infinite;
+    }
+    
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .banner-content {
+      position: relative;
+      z-index: 10;
+    }
+    
+    /* 導航標籤 */
+    .nav-pills .nav-link {
+      border-radius: 30px;
+      padding: 0.6rem 1.5rem;
+      transition: all 0.3s ease;
+      margin: 0 0.25rem;
+      color: var(--dark-color);
+      font-weight: 500;
+    }
+    
+    .nav-pills .nav-link:not(.active):hover {
+      background-color: rgba(63, 131, 248, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .nav-pills .nav-link.active {
+      background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+      box-shadow: 0 4px 15px rgba(26, 86, 219, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    /* 卡片樣式 */
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      transform: translateY(-3px);
+    }
+    
+    /* 表格美化 */
+    .table {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+    
+    thead tr {
+      background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+      color: white;
+    }
+    
+    .table > :not(caption) > * > * {
+      padding: 1rem 0.75rem;
+      vertical-align: middle;
+    }
+    
+    tbody tr {
+      transition: all 0.2s ease;
+    }
+    
+    tbody tr:nth-of-type(odd) {
+      background-color: rgba(249, 250, 251, 0.8);
+    }
+    
+    tbody tr:hover {
+      background-color: rgba(224, 242, 254, 0.8);
+      transform: translateX(3px);
+    }
+    
+    /* 按鈕樣式 */
+    .btn {
+      border-radius: 30px;
+      font-weight: 500;
+      padding: 0.5rem 1.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+      border: none;
+      box-shadow: 0 4px 10px rgba(63, 131, 248, 0.25);
+    }
+    
+    .btn-primary:hover {
+      box-shadow: 0 6px 15px rgba(63, 131, 248, 0.35);
+      transform: translateY(-2px);
+    }
+    
+    .btn-success {
+      background: linear-gradient(90deg, #059669, #34d399);
+      border: none;
+      box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
+    }
+    
+    .btn-success:hover {
+      box-shadow: 0 6px 15px rgba(5, 150, 105, 0.35);
+      transform: translateY(-2px);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(90deg, #dc2626, #f87171);
+      border: none;
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25);
+    }
+    
+    .btn-danger:hover {
+      box-shadow: 0 6px 15px rgba(220, 38, 38, 0.35);
+      transform: translateY(-2px);
+    }
+    
+    /* 輸入框樣式 */
+    .form-control {
+      border-radius: 30px;
+      padding: 0.6rem 1.2rem;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 2px 12px rgba(63, 131, 248, 0.15);
+    }
+    
+    /* 彈出框美化 */
+    .modal-content {
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .modal-header {
+      background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+      color: white;
+      border-top-left-radius: 15px;
+      border-top-right-radius: 15px;
+      border-bottom: none;
+    }
+    
+    .modal-footer {
+      border-top: none;
+    }
+    
+    /* 標籤文字美化 */
+    label {
+      font-weight: 500;
+      color: #4b5563;
+    }
+    
+    /* 響應式調整 */
+    @media (max-width: 768px) {
+      .nav-pills .nav-link {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+      }
+      
+      .table-responsive {
+        box-shadow: none;
+      }
+      
+      .table {
+        box-shadow: none;
+      }
+    }
+    
+    /* 自訂搜尋區塊美化 */
+    .search-container {
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      transition: all 0.3s ease;
+    }
+    
+    .search-container:hover {
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+    
+    .search-title {
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+    }
+    
+    .search-title i {
+      margin-right: 0.5rem;
+    }
+    
+    /* 統計卡片樣式 */
+    .stats-container {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      flex: 1;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      padding: 1.2rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0));
+      transform: rotate(25deg);
+      transition: all 0.6s ease;
+    }
+    
+    .stat-card:hover::before {
+      transform: rotate(0deg);
+    }
+    
+    .stat-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.8rem;
+      color: var(--primary-color);
+      position: relative;
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--dark-color);
+      position: relative;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: #6b7280;
+      position: relative;
+    }
+    
+    /* 表格標題美化 */
+    .table thead th {
+      position: relative;
+      overflow: hidden;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+      color: white;
+      font-weight: 500;
+    }
+    
+    .table thead th::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+    
+    .table thead th:hover::after {
+      transform: translateX(0);
+    }
+    
+    /* 載入中動畫 */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 2rem 0;
+    }
+    
+    .loading-spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid var(--primary-color);
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* 輔助圖標樣式 */
+    .form-icon {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      left: 15px;
+      color: var(--primary-color);
+    }
+    
+    .icon-input {
+      padding-left: 40px;
+    }
+    
+    .has-icon {
+      position: relative;
+    }
+    
+    /* 分頁控制器 */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+    
+    .pagination .page-item:first-child .page-link {
+      border-top-left-radius: 30px;
+      border-bottom-left-radius: 30px;
+    }
+    
+    .pagination .page-item:last-child .page-link {
+      border-top-right-radius: 30px;
+      border-bottom-right-radius: 30px;
+    }
+    
+    .pagination .page-link {
+      border: none;
+      padding: 0.5rem 1rem;
+      margin: 0 2px;
+      color: var(--dark-color);
+      background: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .pagination .page-link:hover {
+      background: rgba(63, 131, 248, 0.1);
+      color: var(--primary-color);
+      transform: translateY(-2px);
+    }
+    
+    .pagination .page-item.active .page-link {
+      background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+      color: white;
+      box-shadow: 0 4px 10px rgba(26, 86, 219, 0.3);
+    }
+    
+    /* 返回頂部按鈕 */
+    .back-to-top {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+    
+    .back-to-top.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* 自訂按鈕圖標樣式 */
+    .btn i {
+      margin-right: 0.5rem;
+    }
+    
+    /* 表格中的按鈕 */
+    .table .btn-sm {
+      padding: 0.25rem 0.75rem;
+      font-size: 0.875rem;
+    }
+    
+    /* 表格中的空資料提示 */
+    .empty-data {
+      text-align: center;
+      padding: 2rem;
+      color: #6b7280;
+      font-style: italic;
+    }
+    
+    /* 表格的行交替顏色 */
+    .table tbody tr:nth-of-type(even) {
+      background-color: rgba(237, 242, 247, 0.8);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Banner -->
+  <header class="banner py-4 d-flex align-items-center px-4 mb-4">
+    <div class="banner-content d-flex align-items-center w-100">
+      <img src="logo.png" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDUiIGZpbGw9IiMxYTU2ZGIiLz48cGF0aCBkPSJNNjUgMzBINDVjLTUuNTIzIDAtMTAgNC40NzctMTAgMTB2MzBjMCA1LjUyMyA0LjQ3NyAxMCAxMCAxMGgyMGM1LjUyMyAwIDEwLTQuNDc3IDEwLTEwVjQwYzAtNS41MjMtNC40NzctMTAtMTAtMTB6TTE1IDUwdjEwbDIwLTE1LTIwLTE1djEweiIgZmlsbD0id2hpdGUiLz48L3N2Zz4='" alt="logo" class="me-4" style="height:85px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));" />
+      <div>
+        <h1 class="h4 mb-1 fw-bold">海巡署教育訓練測考中心圖書查詢系統</h1>
+        <p class="mb-0 opacity-75">Coast Guard Administration Education and Training Testing Center Library Query System</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="container-fluid px-4">
+    <!-- 數據統計展示 -->
+    <div class="stats-container fade-in">
