@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
@@ -49,13 +53,12 @@ switch ($action) {
         echo json_encode(read_json('borrowed.json'), JSON_UNESCAPED_UNICODE);
         break;
     case 'borrow_book':
-        $isbn = $_POST['ISBN'] ?? '';
         $class = $_POST['班級'] ?? '';
         $name = $_POST['姓名'] ?? '';
         $book_title = $_POST['書名'] ?? '';
         $return_date = $_POST['應還日'] ?? '';
         $borrow_date = $_POST['借出日'] ?? '';
-        if (!$isbn || !$class || !$name || !$book_title || !$return_date || !$borrow_date) {
+        if (!$class || !$name || !$book_title || !$return_date || !$borrow_date) {
             echo json_encode(['success'=>false, 'msg'=>'資料不完整']);
             exit;
         }
@@ -63,7 +66,7 @@ switch ($action) {
         $books = read_csv('books.csv');
         $book = null;
         foreach ($books as $b) {
-            if ($b['ISBN'] == $isbn) {
+            if ($b['書名'] == $book_title) {
                 $book = $b;
                 break;
             }
@@ -74,7 +77,7 @@ switch ($action) {
         }
         $borrowed_count = 0;
         foreach ($borrowed as $r) {
-            if ($r['ISBN'] == $isbn) $borrowed_count++;
+            if ($r['書名'] == $book_title) $borrowed_count++;
         }
         if ($borrowed_count >= intval($book['數量'])) {
             echo json_encode(['success'=>false, 'msg'=>'此書已無庫存可借']);
@@ -84,7 +87,6 @@ switch ($action) {
             '班級'=>$class,
             '姓名'=>$name,
             '書名'=>$book_title,
-            'ISBN'=>$isbn,
             '借出日'=>$borrow_date,
             '應還日'=>$return_date
         ];
@@ -92,14 +94,14 @@ switch ($action) {
         echo json_encode(['success'=>true]);
         break;
     case 'return_book':
-        $isbn = $_POST['ISBN'] ?? '';
         $name = $_POST['姓名'] ?? '';
         $class = $_POST['班級'] ?? '';
+        $book_title = $_POST['書名'] ?? '';
         $borrowed = read_json('borrowed.json');
         $new_borrowed = [];
         $found = false;
         foreach ($borrowed as $r) {
-            if ($r['ISBN'] == $isbn && $r['姓名'] == $name && $r['班級'] == $class && !$found) {
+            if ($r['書名'] == $book_title && $r['姓名'] == $name && $r['班級'] == $class && !$found) {
                 $found = true;
                 continue;
             }
