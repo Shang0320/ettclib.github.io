@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 import math
 
+# 一定要放在所有 Streamlit 指令之前！
+st.set_page_config(page_title="海巡署圖書查詢系統", layout="wide")
+
 # 讀取資料
 @st.cache_data
 def load_data():
@@ -12,11 +15,9 @@ def load_data():
 
 thesis, journal, book = load_data()
 
-st.set_page_config(page_title="海巡署圖書查詢系統", layout="wide")
-
+# 手機友善樣式
 st.markdown("""
 <style>
-/* 手機友善樣式 */
 @media (max-width: 430px) {
     .block-container { padding: 0.5rem 0.2rem !important; }
     .stDataFrame { font-size: 0.92rem; }
@@ -29,7 +30,6 @@ st.title("海巡署教育訓練測考中心圖書查詢系統")
 
 tab = st.tabs(["論文查詢", "期刊查詢", "書籍查詢"])
 
-# 分頁參數
 PAGE_SIZE = 30
 
 def show_table(df, search_cols, tab_key):
