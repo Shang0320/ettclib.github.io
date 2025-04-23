@@ -1,21 +1,20 @@
+# -*- coding: utf-8 -*-
 import streamlit as st
 import pandas as pd
 import math
 
-# 一定要放在所有 Streamlit 指令之前！
 st.set_page_config(page_title="海巡署圖書查詢系統", layout="wide")
 
-# 讀取資料
+# 讀取資料，明確指定 UTF-8 編碼
 @st.cache_data
 def load_data():
-    thesis = pd.read_csv('thesis.csv')
-    journal = pd.read_csv('journal.csv')
-    book = pd.read_csv('books.csv')
+    thesis = pd.read_csv('thesis.csv', encoding='utf-8')
+    journal = pd.read_csv('journal.csv', encoding='utf-8')
+    book = pd.read_csv('books.csv', encoding='utf-8')
     return thesis, journal, book
 
 thesis, journal, book = load_data()
 
-# 手機友善樣式
 st.markdown("""
 <style>
 @media (max-width: 430px) {
@@ -33,19 +32,16 @@ tab = st.tabs(["論文查詢", "期刊查詢", "書籍查詢"])
 PAGE_SIZE = 30
 
 def show_table(df, search_cols, tab_key):
-    # 搜尋欄位
     cols = st.columns(len(search_cols))
     query = {}
     for i, col in enumerate(search_cols):
         with cols[i]:
             val = st.text_input(f"請輸入{col}關鍵字", key=f"{tab_key}_{col}")
             query[col] = val.strip()
-    # 過濾
     filtered = df
     for col, val in query.items():
         if val:
             filtered = filtered[filtered[col].astype(str).str.contains(val, case=False, na=False)]
-    # 分頁
     total = len(filtered)
     total_pages = max(1, math.ceil(total / PAGE_SIZE))
     page = st.number_input("頁數", min_value=1, max_value=total_pages, value=1, step=1, key=f"{tab_key}_page")
