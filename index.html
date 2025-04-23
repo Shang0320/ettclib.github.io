@@ -692,6 +692,7 @@
           <tbody id="thesis-body"></tbody>
         </table>
       </div>
+      <div class="card-list d-none" id="thesis-card-list"></div>
     </section>
 
     <!-- 期刊 查詢 -->
@@ -733,6 +734,7 @@
           <tbody id="journal-body"></tbody>
         </table>
       </div>
+      <div class="card-list d-none" id="journal-card-list"></div>
     </section>
 
     <!-- 書籍 查詢 -->
@@ -772,23 +774,22 @@
             <col style="--col-width:10%"><!-- 出版者 -->
             <col style="--col-width:6%"><!-- 出版年 -->
             <col style="--col-width:9%"><!-- 分類 -->
-            <col style="--col-width:9%"><!-- ISBN -->
+            <col style="--col-width:9%"><!-- 索書號 -->
             <col style="--col-width:8%"><!-- 藏書位置 -->
             <col style="--col-width:5%"><!-- 數量 -->
             <col style="--col-width:9%"><!-- 已借出 -->
-            <col style="--col-width:7%"><!-- 歸還日期 -->
-            <col style="--col-width:5%"><!-- 操作 -->
+            <col style="--col-width:7%"><!-- 操作 -->
           </colgroup>
           <thead>
             <tr>
               <th>序號</th><th>書名</th><th>作者</th><th>出版者</th><th>出版年</th>
-              <th>分類</th><th>ISBN</th><th>藏書位置</th><th>數量</th>
-              <th>已借出</th><th>歸還日期</th><th>操作</th>
+              <th>分類</th><th>索書號</th><th>藏書位置</th><th>數量</th><th>已借出</th><th>操作</th>
             </tr>
           </thead>
           <tbody id="book-body"></tbody>
         </table>
       </div>
+      <div class="card-list d-none" id="book-card-list"></div>
     </section>
 
     <!-- 借出 查詢 -->
@@ -804,7 +805,6 @@
               <th><i class="fas fa-users me-1"></i> 班級</th>
               <th><i class="fas fa-user me-1"></i> 姓名</th>
               <th><i class="fas fa-book me-1"></i> 書名</th>
-              <th><i class="fas fa-barcode me-1"></i> ISBN</th>
               <th><i class="fas fa-calendar-plus me-1"></i> 借出日</th>
               <th><i class="fas fa-calendar-minus me-1"></i> 應還日</th>
               <th><i class="fas fa-tools me-1"></i> 操作</th>
@@ -813,6 +813,7 @@
           <tbody id="borrow-body"></tbody>
         </table>
       </div>
+      <div class="card-list d-none" id="borrow-card-list"></div>
     </section>
   </div>
 
@@ -970,12 +971,14 @@
         render(id);
       }
     }
-    async function filterData(type) {
+    function filterData(type) {
       const loader = document.getElementById('page-loader');
       loader.style.display = 'block';
       setTimeout(async ()=>{
         const filters = Array.from(document.querySelectorAll(`#${type} .filter`)).filter(input=>input.value.trim()!=='');
         let data = dataStore[type];
+        const table = document.querySelector(`#${type} .table-responsive`);
+        const cardList = document.getElementById(`${type}-card-list`);
         if (filters.length > 0) {
           data = data.filter(row => {
             return filters.every(input => {
@@ -985,40 +988,182 @@
               return row[key].toString().toLowerCase().includes(value);
             });
           });
+          table.classList.add('d-none');
+          cardList.classList.remove('d-none');
+          renderCards(type, data);
+        } else {
+          table.classList.remove('d-none');
+          cardList.classList.add('d-none');
+          render(type, data);
         }
-        render(type, data);
         loader.style.display = 'none';
       }, 300);
+    }
+    function renderCards(type, data, page = 1) {
+      const cardList = document.getElementById(`${type}-card-list`);
+      cardList.innerHTML = '';
+      const pageSize = 30;
+      const total = data ? data.length : 0;
+      const totalPages = Math.ceil(total / pageSize);
+      if (!data || total === 0) {
+        cardList.innerHTML = '<div class="text-center text-muted py-5">查無資料</div>';
+        document.getElementById(`${type}-card-pagination`)?.remove();
+        return;
+      }
+      // 取本頁資料
+      const pageData = data.slice((page-1)*pageSize, page*pageSize);
+      // 馬卡龍色系
+      const pastelColors = [
+        '#ffe0e9', '#e0f7fa', '#fff9c4', '#e1f5fe', '#f3e5f5', '#e0f2f1', '#fce4ec', '#f8bbd0', '#dcedc8', '#f0f4c3', '#b2ebf2', '#d1c4e9'
+      ];
+      // 卡片容器（flex）
+      const flexWrap = document.createElement('div');
+      flexWrap.style.display = 'flex';
+      flexWrap.style.flexWrap = 'wrap';
+      flexWrap.style.gap = '20px';
+      flexWrap.style.justifyContent = 'flex-start';
+      flexWrap.style.marginBottom = '32px';
+      pageData.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.className = 'card search-card';
+        card.style.background = pastelColors[(idx + (page-1)*pageSize) % pastelColors.length];
+        card.style.border = 'none';
+        card.style.borderRadius = '18px';
+        card.style.boxShadow = '0 4px 18px rgba(0,0,0,0.08)';
+        card.style.margin = '0';
+        card.style.padding = '18px 18px 12px 18px';
+        card.style.width = 'calc(33.333% - 20px)'; // 一行三張
+        card.style.minWidth = '260px';
+        card.style.maxWidth = '340px';
+        card.style.fontSize = '0.98rem';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+        card.style.justifyContent = 'flex-start';
+        card.style.alignItems = 'flex-start';
+        card.style.transition = 'box-shadow 0.2s';
+        card.onmouseover = () => card.style.boxShadow = '0 8px 28px rgba(63,131,248,0.13)';
+        card.onmouseout = () => card.style.boxShadow = '0 4px 18px rgba(0,0,0,0.08)';
+        let html = '';
+        if(type === 'book') {
+          html += `<div style='font-weight:600;font-size:1.08rem;margin-bottom:6px;'>${item['書名']}</div>`;
+          html += `<div>出版社：${item['出版者']||''}</div>`;
+          html += `<div>作者：${item['作者']||''}</div>`;
+          html += `<div>出版年：${item['出版年']||''}</div>`;
+          html += `<div>分類：${item['分類']||''}</div>`;
+          html += `<div>索書號：${item['索書號']||''}</div>`;
+          html += `<div>藏書位置：${item['藏書位置']||''}</div>`;
+          html += `<div>數量：${item['數量']||''}</div>`;
+          // 已借出
+          html += `<div id='borrowed-count-${item['書名']?.replace(/[^a-zA-Z0-9]/g,'')||idx}'></div>`;
+        } else if(type === 'thesis') {
+          html += `<div style='font-weight:600;font-size:1.08rem;margin-bottom:6px;'>${item['論文名稱']}</div>`;
+          html += `<div>研究生：${item['研究生']||''}</div>`;
+          html += `<div>指導教授：${item['指導教授']||''}</div>`;
+          html += `<div>校院名稱：${item['校院名稱']||''}</div>`;
+          html += `<div>系所名稱：${item['系所名稱']||''}</div>`;
+          html += `<div>學位類別：${item['學位類別']||''}</div>`;
+          html += `<div>畢業學年度：${item['畢業學年度']||''}</div>`;
+          html += `<div>論文出版年：${item['論文出版年']||''}</div>`;
+        } else if(type === 'journal') {
+          html += `<div style='font-weight:600;font-size:1.08rem;margin-bottom:6px;'>${item['刊名']}</div>`;
+          html += `<div>出版者：${item['出版者']||''}</div>`;
+          html += `<div>作者：${item['作者']||''}</div>`;
+          html += `<div>期數：${item['期數']||''}</div>`;
+          html += `<div>期刊分類：${item['期刊分類']||''}</div>`;
+          html += `<div>藏書位置：${item['藏書位置']||''}</div>`;
+        }
+        card.innerHTML = html;
+        flexWrap.appendChild(card);
+      });
+      cardList.appendChild(flexWrap);
+      // 書籍分頁補已借出數量
+      if(type === 'book') {
+        fetchBorrowed().then(borrowed => {
+          pageData.forEach((item, idx) => {
+            const id = `borrowed-count-${item['書名']?.replace(/[^a-zA-Z0-9]/g,'')||idx}`;
+            const el = document.getElementById(id);
+            if(el) {
+              const borrowedCount = borrowed.filter(record => record.書名 === item['書名']).length;
+              el.textContent = `已借出：${borrowedCount}`;
+            }
+          });
+        });
+      }
+      // 分頁按鈕
+      let pagin = document.getElementById(`${type}-card-pagination`);
+      if(pagin) pagin.remove();
+      if(totalPages > 1) {
+        pagin = document.createElement('nav');
+        pagin.id = `${type}-card-pagination`;
+        pagin.className = 'd-flex justify-content-center';
+        pagin.style.marginBottom = '32px';
+        let ul = document.createElement('ul');
+        ul.className = 'pagination';
+        // 上一頁
+        let li = document.createElement('li');
+        li.className = 'page-item'+(page===1?' disabled':'');
+        li.innerHTML = `<a class='page-link' href='#'>&laquo;</a>`;
+        li.onclick = e => { e.preventDefault(); if(page>1) renderCards(type, data, page-1); };
+        ul.appendChild(li);
+        // 頁碼
+        for(let i=1;i<=totalPages;i++) {
+          if(i===1||i===totalPages||Math.abs(i-page)<=2) {
+            let li = document.createElement('li');
+            li.className = 'page-item'+(i===page?' active':'');
+            li.innerHTML = `<a class='page-link' href='#'>${i}</a>`;
+            li.onclick = e => { e.preventDefault(); renderCards(type, data, i); };
+            ul.appendChild(li);
+          } else if(i===page-3||i===page+3) {
+            let li = document.createElement('li');
+            li.className = 'page-item disabled';
+            li.innerHTML = `<span class='page-link'>...</span>`;
+            ul.appendChild(li);
+          }
+        }
+        // 下一頁
+        li = document.createElement('li');
+        li.className = 'page-item'+(page===totalPages?' disabled':'');
+        li.innerHTML = `<a class='page-link' href='#'>&raquo;</a>`;
+        li.onclick = e => { e.preventDefault(); if(page<totalPages) renderCards(type, data, page+1); };
+        ul.appendChild(li);
+        pagin.appendChild(ul);
+        cardList.appendChild(pagin);
+      }
     }
     function render(type, data) {
       const body = document.getElementById(`${type}-body`);
       body.innerHTML = '';
       if(type==='book') {
-        // 書籍分頁需取得借閱紀錄
         fetchBorrowed().then(borrowed => {
           (data||dataStore[type]).forEach((r, index) => {
             const tr = document.createElement('tr');
-            const borrowedRecords = borrowed.filter(record => record.ISBN === r['ISBN']);
-            const borrowedCount = borrowedRecords.length;
-            const totalCount = Number(r['數量']) || 0;
-            const latestReturnDate = borrowedCount > 0 ? borrowedRecords[borrowedCount-1].應還日 : '';
-            Object.keys(r).forEach((key, colIndex) => {
+            const fields = ['序號','書名','作者','出版者','出版年','分類','索書號','藏書位置','數量'];
+            fields.forEach((key, colIdx) => {
               const td = document.createElement('td');
               if(key === '書名') td.className = 'book-title';
-              if(key === '已借出') td.textContent = borrowedCount;
-              else if(key === '歸還日期') td.textContent = latestReturnDate;
-              else td.textContent = r[key];
+              if(key === '序號') {
+                td.textContent = r[key] && r[key].toString().trim() !== '' ? r[key] : (index+1);
+              } else {
+                td.textContent = r[key];
+              }
               tr.appendChild(td);
             });
-            // 借閱按鈕
-            const td = document.createElement('td');
-            const btn = document.createElement('button');
-            const canBorrow = borrowedCount < totalCount;
-            btn.className = `btn btn-sm borrow-button ${canBorrow ? 'btn-primary' : 'btn-secondary disabled'}`;
-            btn.innerHTML = canBorrow ? '<i class="fas fa-hand-holding-heart"></i> 可借' : '<i class="fas fa-ban"></i> 已滿';
-            if(canBorrow) btn.onclick = () => openBorrowModal(r['書名'], r['ISBN']);
-            td.appendChild(btn);
-            tr.appendChild(td);
+            const borrowedCount = borrowed.filter(record => record.書名 === r['書名']).length;
+            const tdBorrowed = document.createElement('td');
+            tdBorrowed.textContent = borrowedCount;
+            tr.appendChild(tdBorrowed);
+            const totalCount = Number(r['數量']) || 0;
+            const tdOp = document.createElement('td');
+            if(borrowedCount < totalCount) {
+              const btn = document.createElement('button');
+              btn.className = 'btn btn-sm borrow-button btn-primary';
+              btn.innerHTML = '<i class="fas fa-hand-holding-heart"></i> 可借';
+              btn.onclick = () => openBorrowModal(r['書名']);
+              tdOp.appendChild(btn);
+            } else {
+              tdOp.innerHTML = '<span class="text-secondary">已滿</span>';
+            }
+            tr.appendChild(tdOp);
             body.appendChild(tr);
           });
         });
@@ -1035,7 +1180,15 @@
         });
       }
     }
-    function openBorrowModal(title,isbn){currentBorrowBook={title,isbn};document.getElementById('modal-book-title').textContent=title;const today=new Date(),ret=new Date();ret.setDate(today.getDate()+14);document.getElementById('borrow-date').textContent=formatDate(today);document.getElementById('return-date').textContent=formatDate(ret);new bootstrap.Modal(document.getElementById('borrow-modal')).show();}
+    function openBorrowModal(title){
+      currentBorrowBook={title};
+      document.getElementById('modal-book-title').textContent=title;
+      const today=new Date(),ret=new Date();
+      ret.setDate(today.getDate()+14);
+      document.getElementById('borrow-date').textContent=formatDate(today);
+      document.getElementById('return-date').textContent=formatDate(ret);
+      new bootstrap.Modal(document.getElementById('borrow-modal')).show();
+    }
     async function confirmBorrow() {
       const cls = document.getElementById('class-input').value.trim(),
             nm = document.getElementById('name-input').value.trim();
@@ -1049,7 +1202,6 @@
           '班級': cls,
           '姓名': nm,
           '書名': currentBorrowBook.title,
-          'ISBN': currentBorrowBook.isbn,
           '借出日': document.getElementById('borrow-date').textContent,
           '應還日': document.getElementById('return-date').textContent
         })
@@ -1071,7 +1223,7 @@
       body.innerHTML='';
       rec.forEach((r,i)=>{
         const tr=document.createElement('tr');
-        ['班級','姓名','書名','ISBN','借出日','應還日'].forEach(k=>{
+        ['班級','姓名','書名','借出日','應還日'].forEach(k=>{
           const td=document.createElement('td');
           td.textContent=r[k];
           tr.appendChild(td);
@@ -1087,7 +1239,7 @@
             body: new URLSearchParams({
               '班級': r['班級'],
               '姓名': r['姓名'],
-              'ISBN': r['ISBN']
+              '書名': r['書名']
             })
           });
           const result = await res.json();
