@@ -730,7 +730,8 @@
           </div>
         </div>
       </div>
-      <div class="table-responsive mb-5">
+      <div id="thesis-card-list" class="row g-3 mb-5" style="display:none;"></div>
+      <div class="table-responsive mb-5" id="thesis-table-area">
         <table class="table table-bordered table-hover text-center">
           <colgroup>
             <col style="width:4%"><!-- 序號 -->
@@ -783,7 +784,8 @@
           </div>
         </div>
       </div>
-      <div class="table-responsive mb-5">
+      <div id="journal-card-list" class="row g-3 mb-5" style="display:none;"></div>
+      <div class="table-responsive mb-5" id="journal-table-area">
         <table class="table table-bordered table-hover text-center">
           <thead>
             <tr>
@@ -825,7 +827,8 @@
           </div>
         </div>
       </div>
-      <div class="table-responsive mb-5">
+      <div id="book-card-list" class="row g-3 mb-5" style="display:none;"></div>
+      <div class="table-responsive mb-5" id="book-table-area">
         <table class="table table-bordered table-hover text-center">
           <colgroup>
             <col style="--col-width:4%"><!-- 序號 -->
@@ -860,53 +863,27 @@
    <!-- 本機 JS 資源 -->
   <script src="./assets/bootstrap.bundle.min.js"></script>
   <script>
-    const dataStore = { thesis: [], journal: [], book: [] };
-    const PAGE_SIZE = 30;
-
-    // 論文
-    function loadThesis() {
-      Papa.parse('thesis.csv', {
-        download: true,
-        header: true,
-        complete: function(results) {
-          dataStore.thesis = results.data.filter(row => Object.values(row).some(v => v && v.trim() !== ''));
-          document.getElementById('thesis-count').textContent = dataStore.thesis.length;
-          render('thesis');
-        }
-      });
+    const dataStore={ thesis:[], journal:[], book:[] };
+    async function fetchData(type) {
+      let action = '';
+      if(type==='thesis') action='get_thesis';
+      if(type==='journal') action='get_journals';
+      if(type==='book') action='get_books';
+      const res = await fetch(`api.php?action=${action}`);
+      return await res.json();
     }
-
-    // 期刊
-    function loadJournal() {
-      Papa.parse('journal.csv', {
-        download: true,
-        header: true,
-        complete: function(results) {
-          dataStore.journal = results.data.filter(row => Object.values(row).some(v => v && v.trim() !== ''));
-          document.getElementById('journal-count').textContent = dataStore.journal.length;
-          render('journal');
-        }
-      });
+    async function updateStats() {
+      dataStore.thesis = await fetchData('thesis');
+      dataStore.journal = await fetchData('journal');
+      dataStore.book = await fetchData('book');
+      document.getElementById('thesis-count').textContent = dataStore.thesis.length;
+      document.getElementById('journal-count').textContent = dataStore.journal.length;
+      document.getElementById('book-count').textContent = dataStore.book.length;
     }
-
-    // 書籍
-    function loadBook() {
-      Papa.parse('books.csv', {
-        download: true,
-        header: true,
-        complete: function(results) {
-          dataStore.book = results.data.filter(row => Object.values(row).some(v => v && v.trim() !== ''));
-          document.getElementById('book-count').textContent = dataStore.book.length;
-          render('book');
-        }
-      });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded',()=>{
       // 顯示頁面載入進度條
       const loader = document.getElementById('page-loader');
       loader.style.display = 'block';
-
       // 動態產生多個小氣泡動畫
       document.querySelectorAll('.stat-card').forEach(card => {
         const bubbles = document.createElement('div');
@@ -925,7 +902,6 @@
         }
         card.appendChild(bubbles);
       });
-
       // 滾動動畫觀察器
       const scrollObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -937,34 +913,34 @@
       document.querySelectorAll('.scroll-animate').forEach(el => {
         scrollObserver.observe(el);
       });
-
-      // 載入所有資料
-      loadThesis();
-      loadJournal();
-      loadBook();
-
-      setTimeout(()=>{loader.style.display='none';},2000);
-
-      // tab 切換與查詢
-      switchTab('thesis', document.querySelector('.nav-link.active'));
-      document.querySelectorAll('.filter').forEach(input=>{
-        input.addEventListener('input',function(){
-          if(document.getElementById('thesis').classList.contains('d-none')===false) filterData('thesis');
-          if(document.getElementById('journal').classList.contains('d-none')===false) filterData('journal');
-          if(document.getElementById('book').classList.contains('d-none')===false) filterData('book');
+      // AJAX 載入所有資料
+      Promise.all([
+        fetchData('thesis').then(data=>{dataStore.thesis=data;}),
+        fetchData('journal').then(data=>{dataStore.journal=data;}),
+        fetchData('book').then(data=>{dataStore.book=data;})
+      ]).then(()=>{
+        setTimeout(()=>{loader.style.display='none';},2000);
+        updateStats();
+        switchTab('thesis', document.querySelector('.nav-link.active'));
+        document.querySelectorAll('.filter').forEach(input=>{
+          input.addEventListener('input',function(){
+            if(document.getElementById('thesis').classList.contains('d-none')===false) filterData('thesis');
+            if(document.getElementById('journal').classList.contains('d-none')===false) filterData('journal');
+            if(document.getElementById('book').classList.contains('d-none')===false) filterData('book');
+          });
         });
       });
     });
-
-    function switchTab(id, btn) {
+    function switchTab(id,btn){
       document.querySelectorAll('.nav-link').forEach(e=>e.classList.remove('active'));
       btn.classList.add('active');
       document.querySelectorAll('.tab-content').forEach(s=>s.classList.add('d-none'));
       document.getElementById(id).classList.remove('d-none');
+      updateStats();
       render(id);
     }
-
-    // 分頁與渲染
+    // 分頁功能
+    const PAGE_SIZE = 30;
     function render(type, data) {
       const body = document.getElementById(`${type}-body`);
       const pagination = document.getElementById(`${type}-pagination`);
@@ -1013,7 +989,85 @@
         pagination.appendChild(createBtn(totalPages, '»', page===totalPages, page===totalPages));
       }
     }
-
+    function renderBookCards(books) {
+      const cardList = document.getElementById('book-card-list');
+      cardList.innerHTML = '';
+      if (books.length === 0) {
+        cardList.style.display = 'none';
+        document.getElementById('book-table-area').style.display = 'block';
+        return;
+      }
+      books.forEach(book => {
+        cardList.innerHTML += `
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="card p-3 mb-3">
+              <h5 class="card-title">${book['書名'] || ''}</h5>
+              <div>出版社：${book['出版者'] || ''}</div>
+              <div>作者：${book['作者'] || ''}</div>
+              <div>出版年：${book['出版年'] || ''}</div>
+              <div>分類：${book['分類'] || ''}</div>
+              <div>索書號：${book['索書號'] || ''}</div>
+              <div>藏書位置：${book['藏書位置'] || ''}</div>
+              <div>數量：${book['數量'] || ''}</div>
+            </div>
+          </div>
+        `;
+      });
+      cardList.style.display = 'flex';
+      document.getElementById('book-table-area').style.display = 'none';
+    }
+    function renderThesisCards(theses) {
+      const cardList = document.getElementById('thesis-card-list');
+      cardList.innerHTML = '';
+      if (theses.length === 0) {
+        cardList.style.display = 'none';
+        document.getElementById('thesis-table-area').style.display = 'block';
+        return;
+      }
+      theses.forEach(thesis => {
+        cardList.innerHTML += `
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="card p-3 mb-3">
+              <h5 class="card-title">${thesis['論文名稱'] || ''}</h5>
+              <div>研究生：${thesis['研究生'] || ''}</div>
+              <div>指導教授：${thesis['指導教授'] || ''}</div>
+              <div>校院名稱：${thesis['校院名稱'] || ''}</div>
+              <div>系所名稱：${thesis['系所名稱'] || ''}</div>
+              <div>學位類別：${thesis['學位類別'] || ''}</div>
+              <div>畢業學年度：${thesis['畢業學年度'] || ''}</div>
+              <div>論文出版年：${thesis['論文出版年'] || ''}</div>
+            </div>
+          </div>
+        `;
+      });
+      cardList.style.display = 'flex';
+      document.getElementById('thesis-table-area').style.display = 'none';
+    }
+    function renderJournalCards(journals) {
+      const cardList = document.getElementById('journal-card-list');
+      cardList.innerHTML = '';
+      if (journals.length === 0) {
+        cardList.style.display = 'none';
+        document.getElementById('journal-table-area').style.display = 'block';
+        return;
+      }
+      journals.forEach(journal => {
+        cardList.innerHTML += `
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="card p-3 mb-3">
+              <h5 class="card-title">${journal['刊名'] || ''}</h5>
+              <div>出版者：${journal['出版者'] || ''}</div>
+              <div>作者：${journal['作者'] || ''}</div>
+              <div>期數：${journal['期數'] || ''}</div>
+              <div>期刊分類：${journal['期刊分類'] || ''}</div>
+              <div>藏書位置：${journal['藏書位置'] || ''}</div>
+            </div>
+          </div>
+        `;
+      });
+      cardList.style.display = 'flex';
+      document.getElementById('journal-table-area').style.display = 'none';
+    }
     function filterData(type) {
       const loader = document.getElementById('page-loader');
       loader.style.display = 'block';
@@ -1030,7 +1084,27 @@
             });
           });
         }
-        render(type, data);
+        if(type === 'book' && filters.length > 0 && data.length > 0) {
+          renderBookCards(data);
+        } else if(type === 'thesis' && filters.length > 0 && data.length > 0) {
+          renderThesisCards(data);
+        } else if(type === 'journal' && filters.length > 0 && data.length > 0) {
+          renderJournalCards(data);
+        } else {
+          if(type === 'book') {
+            document.getElementById('book-card-list').style.display = 'none';
+            document.getElementById('book-table-area').style.display = 'block';
+          }
+          if(type === 'thesis') {
+            document.getElementById('thesis-card-list').style.display = 'none';
+            document.getElementById('thesis-table-area').style.display = 'block';
+          }
+          if(type === 'journal') {
+            document.getElementById('journal-card-list').style.display = 'none';
+            document.getElementById('journal-table-area').style.display = 'block';
+          }
+          render(type, data);
+        }
         loader.style.display = 'none';
       }, 300);
     }
