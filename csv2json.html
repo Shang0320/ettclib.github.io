@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>Excel/CSV 轉 JSON 工具</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8fafc; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px #0001; padding: 32px 24px; }
+    h2 { color: #1a56db; margin-bottom: 18px; }
+    label { font-weight: 500; }
+    input[type="file"] { margin-bottom: 18px; }
+    #json-output { width: 100%; min-height: 180px; font-family: 'Consolas', monospace; font-size: 1rem; background: #f3f4f6; border-radius: 8px; padding: 12px; margin-bottom: 18px; border: 1px solid #e5e7eb; }
+    button { background: #1a56db; color: #fff; border: none; border-radius: 6px; padding: 8px 22px; font-size: 1rem; cursor: pointer; margin-right: 10px; }
+    button:disabled { background: #bcdcff; cursor: not-allowed; }
+    .tip { color: #666; font-size: 0.98rem; margin-bottom: 18px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Excel/CSV 轉 JSON 工具</h2>
+    <div class="tip">請上傳 <b>Excel（.xlsx）</b> 或 <b>CSV</b> 檔案，系統會自動將第一個分頁（或全部資料）轉成 JSON。</div>
+    <input type="file" id="file-input" accept=".xlsx,.csv" />
+    <button id="download-btn" disabled>下載 JSON</button>
+    <pre id="json-output">請先上傳檔案...</pre>
+  </div>
+  <script>
+    let jsonData = null;
+    let baseFileName = 'data';
+    document.getElementById('file-input').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const ext = file.name.split('.').pop().toLowerCase();
+      baseFileName = file.name.replace(/\.[^.]+$/, ''); // 取主檔名
+      if (ext === 'xlsx') {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[firstSheet];
+          jsonData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+          showJson(jsonData);
+        };
+        reader.readAsArrayBuffer(file);
+      } else if (ext === 'csv') {
+        Papa.parse(file, {
+          header: true,
+          skipEmptyLines: true,
+          complete: function(results) {
+            jsonData = results.data;
+            showJson(jsonData);
+          }
+        });
+      } else {
+        alert('只支援 .xlsx 或 .csv 檔案');
+      }
+    });
+    function showJson(data) {
+      document.getElementById('json-output').textContent = JSON.stringify(data, null, 2);
+      document.getElementById('download-btn').disabled = false;
+    }
+    document.getElementById('download-btn').addEventListener('click', function() {
+      if (!jsonData) return;
+      const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = baseFileName + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html> 

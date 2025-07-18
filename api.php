@@ -83,14 +83,18 @@ switch ($action) {
             echo json_encode(['success'=>false, 'msg'=>'此書已無庫存可借']);
             exit;
         }
-        $borrowed[] = [
+        $new_record = [
             '班級'=>$class,
             '姓名'=>$name,
             '書名'=>$book_title,
             '借出日'=>$borrow_date,
             '應還日'=>$return_date
         ];
+        $borrowed[] = $new_record;
         write_json('borrowed.json', $borrowed);
+        $history = file_exists('borrow_history.json') ? read_json('borrow_history.json') : [];
+        $history[] = $new_record;
+        write_json('borrow_history.json', $history);
         echo json_encode(['success'=>true]);
         break;
     case 'return_book':
@@ -109,6 +113,10 @@ switch ($action) {
         }
         write_json('borrowed.json', $new_borrowed);
         echo json_encode(['success'=>true]);
+        break;
+    case 'get_borrow_history_count':
+        $history = file_exists('borrow_history.json') ? read_json('borrow_history.json') : [];
+        echo json_encode(['count'=>count($history)]);
         break;
     default:
         echo json_encode(['success'=>false, 'msg'=>'未知動作']);
