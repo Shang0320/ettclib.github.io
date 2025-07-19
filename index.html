@@ -234,8 +234,10 @@
         <div style="font-size: 1rem;">Coast Guard Administration Education and Training Testing Center Library Query System</div>
       </div>
     </div>
-    <div id="login-counter" style="position: absolute; bottom: 12px; right: 32px; background: #fff; color: #1a56db; border-radius: 12px; box-shadow: 0 2px 8px #0001; padding: 0.7rem 1.5rem; font-weight: bold; font-size: 1.1rem; z-index: 10;">
-      觀看次數：<span id="login-count">0</span>
+    <!-- 網站計數器放在BANNER右下角 -->
+    <div style="position: absolute; bottom: 12px; right: 32px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #0001; padding: 0.7rem 1.5rem; z-index: 10; display: flex; align-items: center; gap: 0.5rem;">
+      <span style="font-weight: bold; color: #1a56db; font-size: 1.1rem;">瀏覽次數:</span>
+      <img src="https://www.f-counter.net/j/66/1752936302/" alt="網站計數器">
     </div>
   </header>
   <div class="container-fluid">
@@ -362,13 +364,6 @@
     &copy; 2025 海巡署教育訓練測考中心 | 圖書查詢系統 v2.0
   </footer>
   <script>
-    // 觀看次數統計（本機 localStorage）
-    (function() {
-      let count = parseInt(localStorage.getItem('viewCount') || '0', 10);
-      count++;
-      localStorage.setItem('viewCount', count);
-      document.getElementById('login-count').textContent = count;
-    })();
     // 只保留三個查詢分頁的資料
     const dataStore = { thesis: [], journal: [], book: [] };
     async function fetchData(type) {
