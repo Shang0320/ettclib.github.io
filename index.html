@@ -25,7 +25,7 @@
     .stats-row {
       display: flex;
       justify-content: space-around;
-      margin-bottom: 2rem;
+      margin-bottom: 1.2rem;
     }
     .stat-box {
       background: #fff;
@@ -44,10 +44,17 @@
       font-size: 1rem;
       color: #333;
     }
+    .nav-pills {
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
     .nav-pills .nav-link {
       border-radius: 0;
       color: #1a56db;
-      font-weight: 500;
+      font-weight: 600;
+      font-size: 1.35rem;
+      padding: 0.7rem 2.5rem;
+      margin: 0 0.5rem;
     }
     .nav-pills .nav-link.active {
       background: #1a56db;
@@ -63,13 +70,16 @@
     .table {
       background: #fff;
       border-radius: 8px;
-      border: 1px solid #e5e7eb;
+      border: 2px solid #1a56db;
       margin-bottom: 2rem;
+      border-collapse: collapse;
     }
     .table th, .table td {
       text-align: center;
       vertical-align: middle;
       padding: 0.5rem 0.5rem;
+      border: 1.5px solid #1a56db;
+      background: #fff;
     }
     .form-control {
       border-radius: 6px;
@@ -111,15 +121,13 @@
         <div class="stat-label">書籍總數</div>
       </div>
     </div>
-    <nav class="my-4">
-      <ul class="nav nav-pills justify-content-center mb-4">
-        <li class="nav-item"><button class="nav-link active" onclick="switchTab('thesis', this)">論文查詢</button></li>
-        <li class="nav-item"><button class="nav-link" onclick="switchTab('journal', this)">期刊查詢</button></li>
-        <li class="nav-item"><button class="nav-link" onclick="switchTab('book', this)">書籍查詢</button></li>
-      </ul>
-    </nav>
+    <ul class="nav nav-pills">
+      <li class="nav-item"><button class="nav-link" id="tab-thesis" onclick="switchTab('thesis', this)">論文查詢</button></li>
+      <li class="nav-item"><button class="nav-link" id="tab-journal" onclick="switchTab('journal', this)">期刊查詢</button></li>
+      <li class="nav-item"><button class="nav-link" id="tab-book" onclick="switchTab('book', this)">書籍查詢</button></li>
+    </ul>
     <!-- 論文 查詢 -->
-    <section id="thesis" class="tab-content">
+    <section id="thesis" class="tab-content d-none">
       <div class="search-container mb-4">
         <div class="row align-items-end g-3">
           <div class="col-lg-4 col-md-6">
@@ -182,7 +190,7 @@
       </div>
     </section>
     <!-- 書籍 查詢 -->
-    <section id="book" class="tab-content d-none">
+    <section id="book" class="tab-content">
       <div class="search-container mb-4">
         <div class="row align-items-end g-3">
           <div class="col-lg-4 col-md-6">
@@ -235,7 +243,8 @@
         fetchData('journal').then(data=>{dataStore.journal=data; document.getElementById('journal-count').textContent = data.length;}),
         fetchData('book').then(data=>{dataStore.book=data; document.getElementById('book-count').textContent = data.length;})
       ]).then(()=>{
-        switchTab('thesis', document.querySelector('.nav-link.active'));
+        // 預設顯示書籍查詢分頁
+        switchTab('book', document.getElementById('tab-book'));
         document.querySelectorAll('.filter').forEach(input=>{
           input.addEventListener('input',function(){
             if(document.getElementById('thesis').classList.contains('d-none')===false) filterData('thesis');
