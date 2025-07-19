@@ -178,6 +178,51 @@
     .tab-content-area {
       margin-top: 1.5rem;
     }
+    /* Banner 特效區塊開始 */
+    .banner {
+      background: linear-gradient(135deg, #1e40af, #0369a1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      color: white;
+      position: relative;
+      overflow: hidden;
+      animation: bannerIn 1s both;
+      animation-timing-function: ease;
+    }
+    @keyframes bannerIn {
+      from { opacity: 0; transform: translateY(-60px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .banner::before {
+      content: "";
+      position: absolute;
+      top: -20%;
+      left: -40%;
+      width: 150%;
+      height: 120%;
+      background: radial-gradient(circle at 15% 50%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 80%);
+      animation: rotate 14s linear infinite;
+      z-index: 5;
+    }
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .banner-content {
+      position: relative;
+      z-index: 10;
+    }
+    .banner img {
+      height: 90px;
+      margin-right: 36px;
+      filter: drop-shadow(0 0 16px #fff8);
+      animation: logoPop 1.2s;
+    }
+    @keyframes logoPop {
+      0% { transform: scale(0.5);}
+      80% { transform: scale(1.1);}
+      100% { transform: scale(1);}
+    }
+    /* Banner 特效區塊結束 */
   </style>
 </head>
 <body>
